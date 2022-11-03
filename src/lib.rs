@@ -4,12 +4,12 @@
 #![deny(clippy::missing_safety_doc)]
 #![warn(clippy::trivially_copy_pass_by_ref)]
 
-//! # picture
-//! a fast and flexible image manipulation crate.
+//! # Picture
+//! A fast and flexible image manipulation crate.
 //!
-//! # quick start
-//! take a look at the [`prelude`] for the most important items. start with the [`Pixel`][prelude::Pixel],
-//! [`ImageView`][prelude::ImageView] and [`ImageViewMut`][prelude::ImageViewMut] traits. then, the
+//! # Quick Start
+//! Take a look at the [`prelude`] for the most important items. Start with the [`Pixel`][prelude::Pixel],
+//! [`ImageView`][prelude::ImageView] and [`ImageViewMut`][prelude::ImageViewMut] traits. Then, the
 //! [`ImageBuffer`][prelude::ImageBuffer] type.
 
 #[cfg(not(feature = "u64_dimensions"))]
