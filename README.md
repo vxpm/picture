@@ -55,7 +55,7 @@ fn main() {
 (you can find this code in the [examples](examples/fractal.rs))
 
 # disjoint mutable views example
-one of the coolest features of `picture` is the ability to have disjoint mutable views into an image.
+one of the coolest features of `picture` is the ability to have disjoint mutable views into a view.
 the following example swaps the two horizontal halves of an `ImageBuffer` and then saves the result.
 ```rust
 use picture::{
@@ -94,10 +94,13 @@ fn main() {
 ```
 (you can find this code in the [examples](examples/swap.rs) as well!)
 
+the `ImageViewMut` trait has many methods to obtain disjoint mutable views: `split_x_at_mut`, 
+`split_y_at_mut` and `view_mut_multiple`.
+
 # performance
-i've written a few [benchmarks](benches/picture_bench.rs) to compare `picture` and [`image`](https://crates.io/crates/image),
-but i'm not experienced at writing these - so take these results with a grain of salt. benchmarks were executed on my ryzen 5 1600
-with lto = "thin".
+i've written a few [benchmarks](benches/picture_bench.rs) to compare `picture` and 
+[`image`](https://crates.io/crates/image), but i'm not experienced at writing these - so take these
+results with a grain of salt. benchmarks were executed on my ryzen 5 1600 with lto = "thin".
 
 | Benchmark                       | Time                            |
 | ------------------------------- | ------------------------------- |
@@ -111,6 +114,6 @@ with lto = "thin".
 you can try running these yourself with a simple `cargo bench`.
 
 # unsafe
-this crate uses `unsafe` in many places, but i've tried my best to make it all sound - including adding `SAFETY:` comments above
-every `unsafe` block. it's my first big project with abundancy of `unsafe`, however, so if you find any soundness holes please
-let me know!
+this crate uses `unsafe` in many places, but i've tried my best to make it all sound - including
+adding `SAFETY:` comments above every `unsafe` block. it's my first big project with abundancy of
+`unsafe`, however, so if you find any soundness holes please let me know!
