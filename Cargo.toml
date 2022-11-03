@@ -9,6 +9,7 @@ readme = "README.md"
 keywords = ["image", "pixel", "processing", "imaging", "painting"]
 categories = ["multimedia::images"]
 rust-version = "1.65"
+repository = "https://github.com/vxpm/picture"
 
 [dev-dependencies]
 proptest = "1"
