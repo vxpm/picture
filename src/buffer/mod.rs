@@ -225,14 +225,6 @@ where
     }
 
     #[inline]
-    fn view(&self, bounds: Rect) -> Option<Self::View<'_>> {
-        self.bounds()
-            .contains_rect(&bounds)
-            // SAFETY: safe because 'bounds' is checked to be contained within the buffer.
-            .then(|| unsafe { self.view_unchecked(bounds) })
-    }
-
-    #[inline]
     unsafe fn view_unchecked(&self, bounds: Rect) -> Self::View<'_> {
         debug_assert!(self.bounds().contains_rect(&bounds));
         view::ImageBufferView::new(self, bounds)
@@ -268,14 +260,6 @@ where
     #[inline]
     fn pixels_mut(&mut self) -> Self::PixelsMut<'_> {
         self.as_mut_pixel_slice().iter_mut()
-    }
-
-    #[inline]
-    fn view_mut(&mut self, bounds: Rect) -> Option<Self::ViewMut<'_>> {
-        self.bounds()
-            .contains_rect(&bounds)
-            // SAFETY: safe because 'bounds' is checked to be contained within the buffer.
-            .then(|| unsafe { self.view_mut_unchecked(bounds) })
     }
 
     #[inline]

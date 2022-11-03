@@ -1,12 +1,7 @@
 /// Default iterator types.
 pub mod iter;
 
-use crate::{
-    pixel::Pixel,
-    prelude::Dimension,
-    util::{macros::dbg_unwrap_unchecked, Rect},
-    Point,
-};
+use crate::{pixel::Pixel, prelude::Dimension, util::Rect, Point};
 
 // types: ImageBuffer, ImageBufferView, ImageBufferViewMut
 //
@@ -54,31 +49,37 @@ pub trait ImageView {
 
     /// Returns a reference to the pixel with coordinates `(x, y)` relative to this view. If the coordinates
     /// aren't within the bounds of this view, returns `None`.
-    fn pixel(&self, coords: Point) -> Option<&Self::Pixel>;
+    #[inline]
+    fn pixel(&self, coords: Point) -> Option<&Self::Pixel> {
+        self.bounds()
+            .contains_relative(coords)
+            // SAFETY: safe because the pixel is checked to be in bounds
+            .then(|| unsafe { self.pixel_unchecked(coords) })
+    }
 
     /// Returns a reference to the pixel with coordinates `(x, y)` relative to this view, without checking.
     ///
     /// # Safety
     /// The coordinate must be in the bounds of the view.
-    #[inline]
-    unsafe fn pixel_unchecked(&self, coords: Point) -> &Self::Pixel {
-        dbg_unwrap_unchecked!(self.pixel(coords))
-    }
+    unsafe fn pixel_unchecked(&self, coords: Point) -> &Self::Pixel;
 
     /// Returns an iterator over the pixels of this view.
     fn pixels(&self) -> Self::Pixels<'_>;
 
     /// Returns a view into this view. If the bounds don't fit in this view, returns `None`.
-    fn view(&self, bounds: Rect) -> Option<Self::View<'_>>;
+    #[inline]
+    fn view(&self, bounds: Rect) -> Option<Self::View<'_>> {
+        self.bounds()
+            .contains_rect(&bounds)
+            // SAFETY: safe because 'bounds' is checked to be contained within the view.
+            .then(|| unsafe { self.view_unchecked(bounds) })
+    }
 
     /// Returns a view into this view, without checking bounds.
     ///
     /// # Safety
     /// The bounds must fit in this view.
-    #[inline]
-    unsafe fn view_unchecked(&self, bounds: Rect) -> Self::View<'_> {
-        dbg_unwrap_unchecked!(self.view(bounds))
-    }
+    unsafe fn view_unchecked(&self, bounds: Rect) -> Self::View<'_>;
 
     /// Returns multiple views into this view. If any of the bounds don't fit in this view, returns `None`.
     fn view_multiple<const N: usize>(&self, bounds: [Rect; N]) -> Option<[Self::View<'_>; N]> {
@@ -159,32 +160,38 @@ pub trait ImageViewMut: ImageView {
 
     /// Returns a mutable reference to the pixel with coordinates `(x, y)` relative to this view. If the
     /// coordinates aren't within the bounds of this view, returns `None`.
-    fn pixel_mut(&mut self, coords: Point) -> Option<&mut Self::Pixel>;
+    #[inline]
+    fn pixel_mut(&mut self, coords: Point) -> Option<&mut Self::Pixel> {
+        self.bounds()
+            .contains(coords)
+            // SAFETY: safe because the pixel is checked to be in bounds
+            .then(|| unsafe { self.pixel_mut_unchecked(coords) })
+    }
 
     /// Returns a mutable reference to the pixel with coordinates `(x, y)` relative to this view, without
     /// checking.
     ///
     /// # Safety
     /// The coordinate must be in the bounds of the view.
-    #[inline]
-    unsafe fn pixel_mut_unchecked(&mut self, coords: Point) -> &mut Self::Pixel {
-        dbg_unwrap_unchecked!(self.pixel_mut(coords))
-    }
+    unsafe fn pixel_mut_unchecked(&mut self, coords: Point) -> &mut Self::Pixel;
 
     /// Returns a mutable iterator over the pixels of this view.
     fn pixels_mut(&mut self) -> Self::PixelsMut<'_>;
 
     /// Returns a mutable view into this view. If the bounds don't fit in this view, returns `None`.
-    fn view_mut(&mut self, bounds: Rect) -> Option<Self::ViewMut<'_>>;
+    #[inline]
+    fn view_mut(&mut self, bounds: Rect) -> Option<Self::ViewMut<'_>> {
+        self.bounds()
+            .contains_rect(&bounds)
+            // SAFETY: safe because 'bounds' is checked to be contained within the view.
+            .then(|| unsafe { self.view_mut_unchecked(bounds) })
+    }
 
     /// Returns a mutable view into this view, without checking.
     ///
     /// # Safety
     /// The bounds must fit in this view.
-    #[inline]
-    unsafe fn view_mut_unchecked(&mut self, bounds: Rect) -> Self::ViewMut<'_> {
-        dbg_unwrap_unchecked!(self.view_mut(bounds))
-    }
+    unsafe fn view_mut_unchecked(&mut self, bounds: Rect) -> Self::ViewMut<'_>;
 
     /// Returns multiple mutable views into this view. If any of the bounds don't fit in this view or
     /// overlap, returns `None`.

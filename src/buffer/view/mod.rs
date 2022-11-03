@@ -78,14 +78,6 @@ where
     }
 
     #[inline]
-    fn pixel(&self, coords: Point) -> Option<&Self::Pixel> {
-        self.bounds
-            .contains_relative(coords)
-            // SAFETY: safe because the pixel is checked to be in bounds
-            .then(|| unsafe { self.pixel_unchecked(coords) })
-    }
-
-    #[inline]
     unsafe fn pixel_unchecked(&self, coords: Point) -> &Self::Pixel {
         debug_assert!(self.bounds.contains_relative(coords));
 
@@ -105,14 +97,6 @@ where
     #[inline]
     fn pixels(&self) -> Self::Pixels<'_> {
         Self::Pixels::new(self)
-    }
-
-    #[inline]
-    fn view(&self, bounds: Rect) -> Option<Self::View<'_>> {
-        self.bounds
-            .contains_rect_relative(&bounds)
-            // SAFETY: safe because 'bounds' is checked to be contained within the view.
-            .then(|| unsafe { self.view_unchecked(bounds) })
     }
 
     #[inline]
@@ -230,14 +214,6 @@ where
     }
 
     #[inline]
-    fn pixel(&self, coords: Point) -> Option<&Self::Pixel> {
-        self.bounds
-            .contains_relative(coords)
-            // SAFETY: safe because the pixel is checked to be in bounds
-            .then(|| unsafe { self.pixel_unchecked(coords) })
-    }
-
-    #[inline]
     unsafe fn pixel_unchecked(&self, coords: Point) -> &Self::Pixel {
         debug_assert!(self.bounds.contains_relative(coords));
 
@@ -259,14 +235,6 @@ where
     #[inline]
     fn pixels(&self) -> Self::Pixels<'_> {
         Self::Pixels::new(self)
-    }
-
-    #[inline]
-    fn view(&self, bounds: Rect) -> Option<Self::View<'_>> {
-        self.bounds
-            .contains_rect_relative(&bounds)
-            // SAFETY: safe because 'bounds' is checked to be contained within the view.
-            .then(|| unsafe { self.view_unchecked(bounds) })
     }
 
     #[inline]
@@ -296,14 +264,6 @@ where
         Self: 'self_ref;
 
     #[inline]
-    fn pixel_mut(&mut self, coords: Point) -> Option<&mut Self::Pixel> {
-        self.bounds
-            .contains_relative(coords)
-            // SAFETY: safe because the pixel is checked to be in bounds
-            .then(|| unsafe { self.pixel_mut_unchecked(coords) })
-    }
-
-    #[inline]
     unsafe fn pixel_mut_unchecked(&mut self, coords: Point) -> &mut Self::Pixel {
         debug_assert!(self.bounds.contains_relative(coords));
 
@@ -325,14 +285,6 @@ where
     #[inline]
     fn pixels_mut(&mut self) -> Self::PixelsMut<'_> {
         Self::PixelsMut::new(self)
-    }
-
-    #[inline]
-    fn view_mut(&mut self, bounds: Rect) -> Option<Self::ViewMut<'_>> {
-        self.bounds
-            .contains_rect_relative(&bounds)
-            // SAFETY: safe because 'bounds' is checked to be contained within the view.
-            .then(|| unsafe { self.view_mut_unchecked(bounds) })
     }
 
     #[inline]
