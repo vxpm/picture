@@ -117,6 +117,12 @@ impl Rect {
         )
     }
 
+    /// Creates a new empty [`Rect`] with a given top-left [`Point`].
+    #[inline]
+    pub const fn empty(top_left: Point) -> Self {
+        Self::new(top_left, (0, 0))
+    }
+
     /// Returns the top-left [`Point`] of this [`Rect`].
     #[inline]
     pub const fn top_left(&self) -> Point {
