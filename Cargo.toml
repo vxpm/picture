@@ -10,7 +10,7 @@ keywords = ["image", "pixel", "processing", "imaging", "painting"]
 categories = ["multimedia::images"]
 rust-version = "1.65"
 repository = "https://github.com/vxpm/picture"
-exclude = ["examples/*", "compile-tests/*", "benches/*"]
+exclude = ["examples/*", "compile-tests/*"]
 
 [dev-dependencies]
 proptest = "1"
