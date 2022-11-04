@@ -21,7 +21,7 @@ use picture::{formats::png::PngEncoder, prelude::*};
 use std::io::Write;
 
 fn main() {
-    let (width, height) = (32, 32);
+    let (width, height) = (1024, 1024);
     let mut img = Rgb8Image::new(width, height);
 
     let scalex = 3.0 / width as f32;
