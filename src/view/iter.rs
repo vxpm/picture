@@ -134,7 +134,11 @@ pub struct Blocks<'view_ref, P, V> {
     _phantom: PhantomData<&'view_ref [P]>,
 }
 
-impl<'view_ref, P, V> Blocks<'view_ref, P, V> {
+impl<'view_ref, P, V> Blocks<'view_ref, P, V>
+where
+    P: Pixel,
+    V: ImageView<Pixel = P>,
+{
     #[inline]
     pub fn new(view: &'view_ref V, block_width: Dimension, block_height: Dimension) -> Self {
         Self {
