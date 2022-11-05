@@ -35,8 +35,8 @@ impl<P> ImageBuffer<P, Vec<P>> {
     where
         F: FnMut(Point) -> P,
     {
-        let container: Vec<_> = (0..width)
-            .flat_map(|x| (0..height).map(move |y| (x, y)))
+        let container: Vec<_> = (0..height)
+            .flat_map(|y| (0..width).map(move |x| (x, y)))
             .map(f)
             .collect();
 
