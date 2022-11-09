@@ -1,7 +1,7 @@
 use crate::{
     pixel::Pixel,
     prelude::{Dimension, Rect},
-    util::{dimension_to_usize, index_point},
+    util::{dimension_to_usize, index_point, macros::div_ceil},
     view::ImageView,
     Point,
 };
@@ -192,17 +192,13 @@ where
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         // can be made into an exact hint but i'm too lazy
-        // also this div_ceil might silently overflow! which sucks but i'm too lazy!
-        // TODO: fix this
-        let div_ceil = |a, b| (a + b - 1) / b;
-
-        let width_in_blocks = div_ceil(
+        let width_in_blocks = div_ceil!(
             dimension_to_usize(self.view.width()),
-            dimension_to_usize(self.block_width),
+            dimension_to_usize(self.block_width)
         );
-        let height_in_blocks = div_ceil(
+        let height_in_blocks = div_ceil!(
             dimension_to_usize(self.view.height()),
-            dimension_to_usize(self.block_height),
+            dimension_to_usize(self.block_height)
         );
         let size = width_in_blocks
             .checked_mul(height_in_blocks)
