@@ -249,39 +249,39 @@ impl Rect {
     }
 }
 
-/// Converts a [`Dimension`] to an [`usize`], panicking if it does not fit.
+/// Converts a [`Dimension`] to an [`usize`].
 ///
 /// This has [no overhead](https://godbolt.org/z/fGPq71b41) if [`Dimension`] always fits
 /// into an usize.
 ///
 /// # Panics
-/// See above.
+/// Panics if it does not fit.
 #[inline(always)]
 pub fn dimension_to_usize(x: Dimension) -> usize {
     usize::try_from(x).expect("Dimension should fit into usize")
 }
 
-/// Converts a [`Dimension`] to an [`u32`], panicking if it does not fit.
+/// Converts a [`Dimension`] to an [`u32`].
 ///
 /// This has [no overhead](https://godbolt.org/z/fGPq71b41) if [`Dimension`] always fits
 /// into an u32.
 ///
 /// # Panics
-/// See above.
+/// Panics if it does not fit.
 #[inline(always)]
 pub fn dimension_to_u32(x: Dimension) -> u32 {
     u32::try_from(x).expect("Dimension should fit into u32")
 }
 
-/// Calculates an index from a `point` and a `width`: `point.1 * width + point.0`. Panics if...
-/// 1. A [`Dimension`] to [`usize`] conversion panics (number doesn't fit), _or..._
-/// 2. The result overflows.
+/// Calculates an index from a `point` and a `width`: `point.1 * width + point.0`.
 ///
 /// This has [no overhead](https://godbolt.org/z/fGPq71b41) if [`Dimension`] is smaller
 /// than [`usize`].
 ///
 /// # Panics
-/// See above.
+/// Panics if either
+/// 1. A [`Dimension`] to [`usize`] conversion panics (number doesn't fit), _or..._
+/// 2. The result overflows.
 #[inline(always)]
 pub fn index_point((x, y): Point, width: Dimension) -> usize {
     dimension_to_usize(y)
