@@ -210,16 +210,6 @@ where
 
         (0, Some(size))
     }
-
-    #[inline]
-    #[cfg(feature = "unstable")]
-    fn advance_by(&mut self, n: usize) -> Result<(), usize> {
-        self.current_x +=
-            Dimension::try_from(n).expect("shouldn't advance iterator by more than Dimension::MAX");
-        self.current_y += self.current_x / self.view.width();
-        self.current_x %= self.view.height();
-        Ok(())
-    }
 }
 
 #[rustfmt::skip]
