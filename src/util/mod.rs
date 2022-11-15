@@ -228,13 +228,13 @@ impl Rect {
     /// Returns whether this [`Rect`] is completely below another [`Rect`].
     #[inline]
     pub const fn is_completely_below(&self, other: &Rect) -> bool {
-        self.top_left.1 > other.bottom_right().1
+        self.top_left.1 >= other.bottom_right().1
     }
 
     /// Returns whether this [`Rect`] is completely to the right of another [`Rect`].
     #[inline]
     pub const fn is_completely_to_the_right(&self, other: &Rect) -> bool {
-        self.top_left.0 > other.bottom_right().0
+        self.top_left.0 >= other.bottom_right().0
     }
 
     /// Returns whether this [`Rect`] overlaps with another [`Rect`].
