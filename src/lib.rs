@@ -28,6 +28,8 @@ pub mod formats;
 
 /// [`Pixel`][pixel::Pixel] trait and common pixel formats.
 pub mod pixel;
+/// Image processing, like resizing and blurring.
+pub mod processing;
 /// Overall utilities.
 pub mod util;
 /// [`ImageView`][view::ImageView] and [`ImageViewMut`][view::ImageViewMut] traits.
