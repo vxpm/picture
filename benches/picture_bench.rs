@@ -1,6 +1,9 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use image::GenericImageView;
-use picture::prelude::*;
+use picture::{
+    formats::png::{PngDecoder, PngImage},
+    prelude::*,
+};
 
 #[inline]
 fn picture_fractal((width, height): (Dimension, Dimension)) -> Rgb8Image {
@@ -184,9 +187,75 @@ fn closest_match(c: &mut Criterion) {
     group.finish();
 }
 
+fn lanczos_downsample(c: &mut Criterion) {
+    let picture_img = PngDecoder
+        .decode_from_path("examples/images/space.png")
+        .unwrap();
+
+    let PngImage::Rgb(picture_img) = picture_img else {
+        unreachable!()
+    };
+
+    let image_img = image::open("examples/images/space.png").unwrap();
+
+    let mut group = c.benchmark_group("Lanczos Downsample");
+    group.bench_function(BenchmarkId::new("Picture", ""), |b| {
+        b.iter(|| {
+            picture::processing::resize(
+                &picture_img,
+                black_box((512, 256)),
+                picture::processing::ResizeFilter::Lanczos3,
+            )
+        })
+    });
+    group.bench_function(BenchmarkId::new("Image", ""), |b| {
+        b.iter(|| {
+            image_img.resize(
+                black_box(512),
+                black_box(256),
+                image::imageops::FilterType::Lanczos3,
+            )
+        })
+    });
+    group.finish();
+}
+
+fn lanczos_upsample(c: &mut Criterion) {
+    let picture_img = PngDecoder
+        .decode_from_path("examples/images/colorful.png")
+        .unwrap();
+
+    let PngImage::Rgb(picture_img) = picture_img else {
+        unreachable!()
+    };
+
+    let image_img = image::open("examples/images/colorful.png").unwrap();
+
+    let mut group = c.benchmark_group("Lanczos Upsample");
+    group.bench_function(BenchmarkId::new("Picture", ""), |b| {
+        b.iter(|| {
+            picture::processing::resize(
+                &picture_img,
+                black_box((4096, 2048)),
+                picture::processing::ResizeFilter::Lanczos3,
+            )
+        })
+    });
+    group.bench_function(BenchmarkId::new("Image", ""), |b| {
+        b.iter(|| {
+            image_img.resize(
+                black_box(4096),
+                black_box(2048),
+                image::imageops::FilterType::Lanczos3,
+            )
+        })
+    });
+    group.finish();
+}
+
 criterion_group! {
     name = benches;
     config = Criterion::default().warm_up_time(std::time::Duration::from_secs_f32(3.0)).measurement_time(std::time::Duration::from_secs_f32(15.0)).sample_size(50);
-    targets = diff, fractal, closest_match
+    targets = diff, fractal, closest_match, lanczos_downsample, lanczos_upsample
 }
 criterion_main!(benches);
