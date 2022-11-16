@@ -10,13 +10,13 @@ pub mod filters;
 // - https://entropymine.com/imageworsener
 // - https://cs1230.graphics/lectures - specifically image processing I, II and III
 
-/// Resamples an image horizontally to the given width using the given filter.
+/// Resamples a view horizontally to the given width using the given filter.
 /// Height is kept the same.
 ///
 /// `window` is the maximum distance a pixel can be to the one being currently
 /// processed before being cut out of the filter.
 pub fn resample_horizontal<I, P, C, F, const N: usize>(
-    img: &I,
+    view: &I,
     width: Dimension,
     filter: F,
     window: f32,
@@ -28,16 +28,16 @@ where
     F: Fn(f32) -> f32,
 {
     if width == 0 {
-        return ImageBuffer::from_container(Vec::new(), width, img.height());
+        return ImageBuffer::from_container(Vec::new(), width, view.height());
     }
 
     // create container for result
     let mut container =
-        Vec::with_capacity(dimension_to_usize(width) * dimension_to_usize(img.height()));
+        Vec::with_capacity(dimension_to_usize(width) * dimension_to_usize(view.height()));
     let container_pixels = container.spare_capacity_mut();
 
     // find the ratio between the source width and the target width
-    let ratio = img.width() as f32 / width as f32;
+    let ratio = view.width() as f32 / width as f32;
     let sampling_ratio = ratio.max(1.0);
     let inverse_sampling_ratio = 1.0 / sampling_ratio;
 
@@ -51,7 +51,7 @@ where
     let window = window * sampling_ratio;
 
     // precalculate weights
-    let max_src_x_f32 = (img.width() - 1) as f32;
+    let max_src_x_f32 = (view.width() - 1) as f32;
     let mut weights = Vec::with_capacity((2 * (window as usize) + 1) * dimension_to_usize(width));
     let mut weights_start_index = Vec::with_capacity(width as usize);
     for target_x in 0..width {
@@ -78,13 +78,13 @@ where
         let max_src_pixel_x = (equivalent_src_x + window).clamp(0.0, max_src_x_f32) as Dimension;
 
         let weights_start = weights_start_index[target_x as usize];
-        for target_y in 0..img.height() {
+        for target_y in 0..view.height() {
             let mut weight_sum = 0f32;
             let mut channel_value_sum = [0f32; N];
             for (index, src_pixel_x) in (min_src_pixel_x..=max_src_pixel_x).enumerate() {
                 // SAFETY: target_y is in the 0..img.height() range and src_pixel_x is clamped
                 // between 0 and img.width() - 1. therefore, this coordinate is always in bounds.
-                let src_pixel = unsafe { img.pixel_unchecked((src_pixel_x, target_y)) };
+                let src_pixel = unsafe { view.pixel_unchecked((src_pixel_x, target_y)) };
                 let channels = src_pixel.channels();
                 let weight = weights[weights_start + index];
                 weight_sum += weight;
@@ -112,20 +112,20 @@ where
 
     // SAFETY: all pixels have already been initialized in the previous loop.
     unsafe {
-        let size = dimension_to_usize(width) * dimension_to_usize(img.height());
+        let size = dimension_to_usize(width) * dimension_to_usize(view.height());
         container.set_len(size);
     }
 
-    ImageBuffer::from_container(container, width, img.height())
+    ImageBuffer::from_container(container, width, view.height())
 }
 
-/// Resamples an image vertically to the given height using the given filter.
+/// Resamples a view vertically to the given height using the given filter.
 /// Width is kept the same.
 ///
 /// `window` is the maximum distance a pixel can be to the one being currently
 /// processed before being cut out of the filter.
 pub fn resample_vertical<I, P, C, F, const N: usize>(
-    img: &I,
+    view: &I,
     height: Dimension,
     filter: F,
     window: f32,
@@ -137,16 +137,16 @@ where
     F: Fn(f32) -> f32,
 {
     if height == 0 {
-        return ImageBuffer::from_container(Vec::new(), img.width(), height);
+        return ImageBuffer::from_container(Vec::new(), view.width(), height);
     }
 
     // create container for result
     let mut container =
-        Vec::with_capacity(dimension_to_usize(height) * dimension_to_usize(img.width()));
+        Vec::with_capacity(dimension_to_usize(height) * dimension_to_usize(view.width()));
     let container_pixels = container.spare_capacity_mut();
 
     // find the ratio between the source height and the target height
-    let ratio = img.height() as f32 / height as f32;
+    let ratio = view.height() as f32 / height as f32;
     let sampling_ratio = ratio.max(1.0);
     let inverse_sampling_ratio = 1.0 / sampling_ratio;
 
@@ -160,7 +160,7 @@ where
     let window = window * sampling_ratio;
 
     // precalculate weights
-    let max_src_y_f32 = (img.height() - 1) as f32;
+    let max_src_y_f32 = (view.height() - 1) as f32;
     let mut weights = Vec::with_capacity((2 * (window as usize) + 1) * dimension_to_usize(height));
     let mut weights_start_index = Vec::with_capacity(height as usize);
     for target_y in 0..height {
@@ -187,13 +187,13 @@ where
         let max_src_pixel_y = (equivalent_src_y + window).clamp(0.0, max_src_y_f32) as Dimension;
 
         let weights_start = weights_start_index[target_y as usize];
-        for target_x in 0..img.width() {
+        for target_x in 0..view.width() {
             let mut weight_sum = 0f32;
             let mut channel_value_sum = [0f32; N];
             for (index, src_pixel_y) in (min_src_pixel_y..=max_src_pixel_y).enumerate() {
                 // SAFETY: target_x is in the 0..img.width() range and src_pixel_y is clamped
                 // between 0 and img.height() - 1. therefore, this coordinate is always in bounds.
-                let src_pixel = unsafe { img.pixel_unchecked((target_x, src_pixel_y)) };
+                let src_pixel = unsafe { view.pixel_unchecked((target_x, src_pixel_y)) };
                 let channels = src_pixel.channels();
                 let weight = weights[weights_start + index];
                 weight_sum += weight;
@@ -213,7 +213,7 @@ where
             // the correct range.
             unsafe {
                 container_pixels
-                    .get_unchecked_mut(index_point((target_x, target_y), img.width()))
+                    .get_unchecked_mut(index_point((target_x, target_y), view.width()))
                     .write(P::new(result.into_inner_unchecked()));
             }
         }
@@ -221,20 +221,20 @@ where
 
     // SAFETY: all pixels have already been initialized in the previous loop.
     unsafe {
-        let size = dimension_to_usize(height) * dimension_to_usize(img.width());
+        let size = dimension_to_usize(height) * dimension_to_usize(view.width());
         container.set_len(size);
     }
 
-    ImageBuffer::from_container(container, img.width(), height)
+    ImageBuffer::from_container(container, view.width(), height)
 }
 
-/// Resamples an image to the given dimensions using the given filter. This is
+/// Resamples a view to the given dimensions using the given filter. This is
 /// equivalent to doing a horizontal resample followed by a vertical one.
 ///
 /// `window` is the maximum distance a pixel can be to the one being currently
 /// processed before being cut out of the filter.
 pub fn resample<I, P, C, F, const N: usize>(
-    img: &I,
+    view: &I,
     (width, height): (Dimension, Dimension),
     filter: F,
     window: f32,
@@ -245,23 +245,23 @@ where
     C: Copy + ConvApprox<f32> + CastApprox<f32>,
     F: Fn(f32) -> f32,
 {
-    let horizontal = resample_horizontal(img, width, &filter, window);
+    let horizontal = resample_horizontal(view, width, &filter, window);
     resample_vertical(&horizontal, height, filter, window)
 }
 
-/// Performs a box blur in an image and returns the result.
-pub fn box_blur<I, P, C, const N: usize>(img: &I, strength: f32) -> ImageBuffer<P, Vec<P>>
+/// Performs a box blur in a view and returns the result.
+pub fn box_blur<I, P, C, const N: usize>(view: &I, strength: f32) -> ImageBuffer<P, Vec<P>>
 where
     I: ImageView<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
     C: Copy + ConvApprox<f32> + CastApprox<f32>,
 {
     assert!(strength > 0.0);
-    resample(img, img.dimensions(), filters::box_filter, strength)
+    resample(view, view.dimensions(), filters::box_filter, strength)
 }
 
-/// Performs a gaussian blur in an image and returns the result.
-pub fn gaussian_blur<I, P, C, const N: usize>(img: &I, strength: f32) -> ImageBuffer<P, Vec<P>>
+/// Performs a gaussian blur in a view and returns the result.
+pub fn gaussian_blur<I, P, C, const N: usize>(view: &I, strength: f32) -> ImageBuffer<P, Vec<P>>
 where
     I: ImageView<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
@@ -269,14 +269,14 @@ where
 {
     assert!(strength > 0.0);
     resample(
-        img,
-        img.dimensions(),
+        view,
+        view.dimensions(),
         |x| filters::gaussian(x, strength),
         2.0 * strength,
     )
 }
 
-/// Filter type to use when resizing an image using the [`resize`] function.
+/// Filter type to use when resizing a view using the [`resize`] function.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ResizeFilter {
     Box,
@@ -288,9 +288,9 @@ pub enum ResizeFilter {
     Lanczos3,
 }
 
-/// Resizes an image to the given dimensions using the given resizing filter.
+/// Resizes a view to the given dimensions using the given resizing filter.
 pub fn resize<I, P, C, const N: usize>(
-    img: &I,
+    view: &I,
     dimensions: (Dimension, Dimension),
     filter: ResizeFilter,
 ) -> ImageBuffer<P, Vec<P>>
@@ -300,27 +300,27 @@ where
     C: Copy + ConvApprox<f32> + CastApprox<f32>,
 {
     match filter {
-        ResizeFilter::Box => resample(img, dimensions, filters::box_filter, 0.0),
-        ResizeFilter::Triangle => resample(img, dimensions, filters::triangle, 1.0),
-        ResizeFilter::BSpline => resample(img, dimensions, filters::b_spline, 2.0),
-        ResizeFilter::Mitchell => resample(img, dimensions, filters::mitchell, 2.0),
-        ResizeFilter::CatmullRom => resample(img, dimensions, filters::catmull_rom, 2.0),
-        ResizeFilter::Lanczos2 => resample(img, dimensions, filters::lanczos2, 2.0),
-        ResizeFilter::Lanczos3 => resample(img, dimensions, filters::lanczos3, 3.0),
+        ResizeFilter::Box => resample(view, dimensions, filters::box_filter, 0.0),
+        ResizeFilter::Triangle => resample(view, dimensions, filters::triangle, 1.0),
+        ResizeFilter::BSpline => resample(view, dimensions, filters::b_spline, 2.0),
+        ResizeFilter::Mitchell => resample(view, dimensions, filters::mitchell, 2.0),
+        ResizeFilter::CatmullRom => resample(view, dimensions, filters::catmull_rom, 2.0),
+        ResizeFilter::Lanczos2 => resample(view, dimensions, filters::lanczos2, 2.0),
+        ResizeFilter::Lanczos3 => resample(view, dimensions, filters::lanczos3, 3.0),
     }
 }
 
-/// Flips the given image horizontally.
-pub fn flip_horizontal<I>(img: &mut I)
+/// Flips the given view horizontally.
+pub fn flip_horizontal<I>(view: &mut I)
 where
     I: ImageViewMut,
 {
-    for y in 0..img.height() {
-        for x in 0..(img.width() / 2) {
+    for y in 0..view.height() {
+        for x in 0..(view.width() / 2) {
             let left_pixel_bounds = Rect::new((x, y), (1, 1));
-            let right_pixel_bounds = Rect::new((img.width() - 1 - x, y), (1, 1));
+            let right_pixel_bounds = Rect::new((view.width() - 1 - x, y), (1, 1));
 
-            let [mut left, mut right] = img
+            let [mut left, mut right] = view
                 .view_mut_multiple([left_pixel_bounds, right_pixel_bounds])
                 .unwrap();
 
@@ -332,17 +332,17 @@ where
     }
 }
 
-/// Flips the given image vertically.
-pub fn flip_vertical<I>(img: &mut I)
+/// Flips the given view vertically.
+pub fn flip_vertical<I>(view: &mut I)
 where
     I: ImageViewMut,
 {
-    for x in 0..img.width() {
-        for y in 0..(img.height() / 2) {
+    for x in 0..view.width() {
+        for y in 0..(view.height() / 2) {
             let top_pixel_bounds = Rect::new((x, y), (1, 1));
-            let bottom_pixel_bounds = Rect::new((x, img.height() - 1 - y), (1, 1));
+            let bottom_pixel_bounds = Rect::new((x, view.height() - 1 - y), (1, 1));
 
-            let [mut top, mut bottom] = img
+            let [mut top, mut bottom] = view
                 .view_mut_multiple([top_pixel_bounds, bottom_pixel_bounds])
                 .unwrap();
 
