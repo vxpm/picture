@@ -1,7 +1,7 @@
 /// Default iterator types.
 pub mod iter;
 
-use crate::{pixel::Pixel, prelude::Dimension, util::Rect, Point};
+use crate::{buffer::ImageBuffer, pixel::Pixel, prelude::Dimension, util::Rect, Point};
 
 // types: ImageBuffer, ImageBufferView, ImageBufferViewMut
 //
@@ -143,6 +143,19 @@ pub trait ImageView {
         }
 
         Ok(())
+    }
+
+    /// Creates an [`ImageBuffer`] from this view with [`Vec`] as it's container.
+    #[inline]
+    fn to_buffer(&self) -> ImageBuffer<Self::Pixel, Vec<Self::Pixel>>
+    where
+        Self::Pixel: Clone,
+    {
+        // SAFETY: the coordinates are always going to be in bounds since the
+        // new buffer and self have the same dimensions
+        ImageBuffer::from_fn(self.width(), self.height(), |(x, y)| unsafe {
+            self.pixel_unchecked((x, y)).clone()
+        })
     }
 }
 
