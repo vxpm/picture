@@ -17,17 +17,17 @@ where
 }
 
 fn main() {
-    let colorful = PngDecoder
+    let image = PngDecoder
         .decode_from_path("examples/images/colorful.png")
         .unwrap();
 
-    let PngImage::Rgb(mut colorful) = colorful else {
+    let PngImage::Rgb(mut image) = image else {
         unreachable!()
     };
 
-    grayscale(&mut colorful);
+    grayscale(&mut image);
 
-    let encoded = PngEncoder::default().encode(colorful).unwrap();
+    let encoded = PngEncoder::default().encode(image).unwrap();
     let mut f = std::fs::File::create("examples/images/out_grayscale.png").unwrap();
     f.write_all(&encoded[..]).unwrap();
 }

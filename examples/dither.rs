@@ -41,17 +41,17 @@ where
 }
 
 fn main() {
-    let space = PngDecoder
+    let image = PngDecoder
         .decode_from_path("examples/images/space.png")
         .unwrap();
 
-    let PngImage::Rgb(mut space) = space else {
+    let PngImage::Rgb(mut image) = image else {
         unreachable!()
     };
 
-    dither(&mut space);
+    dither(&mut image);
 
-    let encoded = PngEncoder::default().encode(space).unwrap();
+    let encoded = PngEncoder::default().encode(image).unwrap();
     let mut f = std::fs::File::create("examples/images/out_dithered.png").unwrap();
     f.write_all(&encoded[..]).unwrap();
 }
