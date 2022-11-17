@@ -257,6 +257,21 @@ pub trait ImageViewMut: ImageView {
             .zip(view.pixels().cloned())
             .for_each(|(a, b)| *a = b);
     }
+
+    /// Swaps the contents of this view with another one.
+    ///
+    /// # Panics
+    /// Panics if `self.dimensions() != view.dimensions()`
+    #[inline]
+    fn swap_with<I>(&mut self, view: &mut I)
+    where
+        I: ImageViewMut<Pixel = Self::Pixel>,
+    {
+        assert!(self.dimensions() == view.dimensions());
+        self.pixels_mut()
+            .zip(view.pixels_mut())
+            .for_each(|(a, b)| std::mem::swap(a, b));
+    }
 }
 
 pub trait ImageViewExt: ImageView {
