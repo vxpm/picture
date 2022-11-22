@@ -85,7 +85,7 @@ where
     /// Panics if `container.len() != width * height`.
     #[inline]
     pub fn from_container(container: C, width: Dimension, height: Dimension) -> Self {
-        assert!(container.len() == dimension_to_usize(width * height));
+        assert_eq!(container.len(), dimension_to_usize(width * height));
         Self {
             width,
             height,
@@ -170,7 +170,7 @@ where
     where
         P: Copy,
     {
-        assert!(self.dimensions() == buffer.dimensions());
+        assert_eq!(self.dimensions(), buffer.dimensions());
         self.as_mut_pixel_slice()
             .copy_from_slice(buffer.as_pixel_slice());
     }

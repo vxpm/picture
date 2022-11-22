@@ -156,7 +156,7 @@ mod tests {
             let mut iter = view.pixels_with_coords_mut();
 
             let (lower, higher) = iter.size_hint();
-            assert!(lower == higher.unwrap());
+            assert_eq!(lower, higher.unwrap());
 
             for _ in 0..lower {
                 assert!(iter.next().is_some());
@@ -172,7 +172,7 @@ mod tests {
             let mut iter = view.pixels_mut();
 
             let (lower, higher) = iter.size_hint();
-            assert!(lower == higher.unwrap());
+            assert_eq!(lower, higher.unwrap());
 
             for _ in 0..lower {
                 assert!(iter.next().is_some());

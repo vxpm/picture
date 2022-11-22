@@ -105,7 +105,7 @@ pub trait ImageView {
             .map(|b| unsafe { self.view_unchecked(b) })
             .collect();
 
-        debug_assert!(result.len() == result.capacity());
+        debug_assert_eq!(result.len(), result.capacity());
         // SAFETY: safe because the 'bounds' array and the inner array of the 'result'
         // have the same length: N
         unsafe { result.into_inner_unchecked() }
@@ -252,7 +252,7 @@ pub trait ImageViewMut: ImageView {
         I: ImageView<Pixel = Self::Pixel>,
         Self::Pixel: Clone,
     {
-        assert!(self.dimensions() == view.dimensions());
+        assert_eq!(self.dimensions(), view.dimensions());
         self.pixels_mut()
             .zip(view.pixels().cloned())
             .for_each(|(a, b)| *a = b);
@@ -267,7 +267,7 @@ pub trait ImageViewMut: ImageView {
     where
         I: ImageViewMut<Pixel = Self::Pixel>,
     {
-        assert!(self.dimensions() == view.dimensions());
+        assert_eq!(self.dimensions(), view.dimensions());
         self.pixels_mut()
             .zip(view.pixels_mut())
             .for_each(|(a, b)| std::mem::swap(a, b));
