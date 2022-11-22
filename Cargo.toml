@@ -15,9 +15,12 @@ exclude = ["examples/*", "compile-tests/*"]
 [dev-dependencies]
 proptest = "1"
 trybuild = "1"
-criterion = { version = '0.4', features = ["real_blackbox"] }
+criterion = { version = '0.4' }
 num-complex = "0.4"
 image = { version = "0.24", features = ["png"] }
+
+[lib]
+bench = false
 
 [[bench]]
 name = "picture_bench"
