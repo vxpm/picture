@@ -2,7 +2,7 @@ use super::{Dimension, ImageBuffer};
 use crate::{
     pixel::Pixel,
     util::{index_point, Rect},
-    view::{self, ImageView, ImageViewExt, ImageViewMut, ImageViewMutExt},
+    view::{self, ImageView, ImageViewMut},
     Point,
 };
 use std::{
@@ -46,6 +46,12 @@ where
             bounds,
             _phantom: PhantomData,
         }
+    }
+
+    /// Returns an iterator over the pixels and coordinates of this view.
+    #[inline]
+    pub fn pixels_with_coords(&self) -> view::iter::PixelsWithCoords<'_, Self> {
+        view::iter::PixelsWithCoords::new(self)
     }
 }
 
@@ -126,19 +132,6 @@ where
     }
 }
 
-impl<'buffer_ref, P> ImageViewExt for ImageBufferView<'buffer_ref, P>
-where
-    P: Pixel,
-{
-    type PixelsWithCoords<'view_ref> = view::iter::PixelsWithCoords<'view_ref, Self>
-    where
-        Self: 'view_ref;
-
-    fn pixels_with_coords(&self) -> Self::PixelsWithCoords<'_> {
-        view::iter::PixelsWithCoords::new(self)
-    }
-}
-
 /// A mutable view into an [`ImageBuffer`].
 pub struct ImageBufferViewMut<'buffer_ref, P> {
     ptr: NonNull<P>,
@@ -182,6 +175,18 @@ where
             bounds,
             _phantom: PhantomData,
         }
+    }
+
+    /// Returns an iterator over the pixels and coordinates of this view.
+    #[inline]
+    pub fn pixels_with_coords(&self) -> view::iter::PixelsWithCoords<'_, Self> {
+        view::iter::PixelsWithCoords::new(self)
+    }
+
+    /// Returns a mutable iterator over the pixels and coordinates of this view.
+    #[inline]
+    pub fn pixels_with_coords_mut(&mut self) -> iter::PixelsWithCoordsMut<'_, P> {
+        iter::PixelsWithCoordsMut::new(self)
     }
 }
 
@@ -397,31 +402,5 @@ where
 
     fn into_iter(self) -> Self::IntoIter {
         self.pixels_mut()
-    }
-}
-
-impl<'buffer_ref, P> ImageViewExt for ImageBufferViewMut<'buffer_ref, P>
-where
-    P: Pixel,
-{
-    type PixelsWithCoords<'view_ref> = view::iter::PixelsWithCoords<'view_ref, Self>
-    where
-        Self: 'view_ref;
-
-    fn pixels_with_coords(&self) -> Self::PixelsWithCoords<'_> {
-        view::iter::PixelsWithCoords::new(self)
-    }
-}
-
-impl<'buffer_ref, P> ImageViewMutExt for ImageBufferViewMut<'buffer_ref, P>
-where
-    P: Pixel,
-{
-    type PixelsWithCoordsMut<'view_ref> = iter::PixelsWithCoordsMut<'view_ref, P>
-    where
-        Self: 'view_ref;
-
-    fn pixels_with_coords_mut(&mut self) -> Self::PixelsWithCoordsMut<'_> {
-        iter::PixelsWithCoordsMut::new(self)
     }
 }

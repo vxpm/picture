@@ -273,19 +273,3 @@ pub trait ImageViewMut: ImageView {
             .for_each(|(a, b)| std::mem::swap(a, b));
     }
 }
-
-pub trait ImageViewExt: ImageView {
-    type PixelsWithCoords<'view_ref>: Iterator<Item = (Point, &'view_ref Self::Pixel)>
-    where
-        Self: 'view_ref;
-
-    fn pixels_with_coords(&self) -> Self::PixelsWithCoords<'_>;
-}
-
-pub trait ImageViewMutExt: ImageViewMut {
-    type PixelsWithCoordsMut<'view_ref>: Iterator<Item = (Point, &'view_ref mut Self::Pixel)>
-    where
-        Self: 'view_ref;
-
-    fn pixels_with_coords_mut(&mut self) -> Self::PixelsWithCoordsMut<'_>;
-}
