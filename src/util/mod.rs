@@ -33,11 +33,13 @@ impl<T, const SIZE: usize> Array for [T; SIZE] {
 
     #[inline]
     fn iter(&self) -> std::slice::Iter<'_, Self::Elem> {
+        #[allow(clippy::into_iter_on_ref)]
         self.into_iter()
     }
 
     #[inline]
     fn iter_mut(&mut self) -> std::slice::IterMut<'_, Self::Elem> {
+        #[allow(clippy::into_iter_on_ref)]
         self.into_iter()
     }
 }
@@ -270,6 +272,7 @@ pub fn dimension_to_usize(x: Dimension) -> usize {
 /// Panics if it does not fit.
 #[inline(always)]
 pub fn dimension_to_u32(x: Dimension) -> u32 {
+    #[allow(clippy::useless_conversion)]
     u32::try_from(x).expect("Dimension should fit into u32")
 }
 

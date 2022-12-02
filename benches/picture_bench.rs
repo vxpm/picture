@@ -127,7 +127,7 @@ where
     for x in 0..max_x {
         for y in 0..max_y {
             let r = Rect::new((x, y), target.dimensions());
-            let view = source.view(r.clone()).unwrap();
+            let view = source.view(r).unwrap();
             let diff = picture_diff(&view, target);
             if diff < best {
                 best = diff;
