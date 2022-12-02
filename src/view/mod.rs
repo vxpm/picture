@@ -321,14 +321,14 @@ pub trait BlockOps: ImgView {
 
     /// The width, in blocks, of this view.
     #[inline]
-    fn width_in_blocks(&self, block_dimensions: (Dimension, Dimension)) -> Dimension {
-        div_ceil!(self.width(), block_dimensions.0)
+    fn width_in_blocks(&self, block_width: Dimension) -> Dimension {
+        div_ceil!(self.width(), block_width)
     }
 
     /// The height, in blocks, of this view.
     #[inline]
-    fn height_in_blocks(&self, block_dimensions: (Dimension, Dimension)) -> Dimension {
-        div_ceil!(self.height(), block_dimensions.1)
+    fn height_in_blocks(&self, block_height: Dimension) -> Dimension {
+        div_ceil!(self.height(), block_height)
     }
 
     /// The dimensions, in blocks, of this view. Equivalent to `(width_in_blocks, height_in_blocks)`.
@@ -338,15 +338,15 @@ pub trait BlockOps: ImgView {
         block_dimensions: (Dimension, Dimension),
     ) -> (Dimension, Dimension) {
         (
-            self.width_in_blocks(block_dimensions),
-            self.height_in_blocks(block_dimensions),
+            self.width_in_blocks(block_dimensions.0),
+            self.height_in_blocks(block_dimensions.1),
         )
     }
 
     /// The size, in blocks, of this view. Equivalent to `width_in_blocks * height_in_blocks`.
     #[inline]
     fn size_in_blocks(&self, block_dimensions: (Dimension, Dimension)) -> Dimension {
-        self.width_in_blocks(block_dimensions) * self.height_in_blocks(block_dimensions)
+        self.width_in_blocks(block_dimensions.0) * self.height_in_blocks(block_dimensions.1)
     }
 }
 
