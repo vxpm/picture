@@ -98,7 +98,10 @@ pub trait ImgView {
     ///
     /// # Safety
     /// All bounds must fit in this view.
-    fn view_multiple_unchecked<const N: usize>(&self, bounds: [Rect; N]) -> [Self::View<'_>; N] {
+    unsafe fn view_multiple_unchecked<const N: usize>(
+        &self,
+        bounds: [Rect; N],
+    ) -> [Self::View<'_>; N] {
         let result: arrayvec::ArrayVec<Self::View<'_>, N> = bounds
             .into_iter()
             // SAFETY: we trust the caller!
@@ -224,14 +227,15 @@ pub trait ImgViewMut: ImgView {
             }
         }
 
-        Some(self.view_mut_multiple_unchecked(bounds))
+        // SAFETY: bounds have been checked
+        Some(unsafe { self.view_mut_multiple_unchecked(bounds) })
     }
 
     /// Returns multiple mutable views into this view, without checking bounds and overlaps.
     ///
     /// # Safety
     /// All bounds must fit in this view and not overlap with each other.
-    fn view_mut_multiple_unchecked<const N: usize>(
+    unsafe fn view_mut_multiple_unchecked<const N: usize>(
         &mut self,
         bounds: [Rect; N],
     ) -> [Self::ViewMut<'_>; N];

@@ -302,7 +302,7 @@ where
     }
 
     #[inline]
-    fn view_mut_multiple_unchecked<const N: usize>(
+    unsafe fn view_mut_multiple_unchecked<const N: usize>(
         &mut self,
         bounds: [Rect; N],
     ) -> [Self::ViewMut<'_>; N] {
