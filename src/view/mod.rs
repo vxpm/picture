@@ -339,6 +339,11 @@ trait BlockOps: ImgView {
             self.height_in_blocks(block_dimensions),
         )
     }
+
+    #[inline]
+    fn size_in_blocks(&self, block_dimensions: (Dimension, Dimension)) -> Dimension {
+        self.width_in_blocks(block_dimensions) * self.height_in_blocks(block_dimensions)
+    }
 }
 
 impl<I> BlockOps for I where I: ImgView {}
