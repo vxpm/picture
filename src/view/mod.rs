@@ -319,16 +319,19 @@ trait BlockOps: ImgView {
         self.view(Rect::new(top_left, (width, height)))
     }
 
+    /// The width, in blocks, of this view.
     #[inline]
     fn width_in_blocks(&self, block_dimensions: (Dimension, Dimension)) -> Dimension {
         div_ceil!(self.width(), block_dimensions.0)
     }
 
+    /// The height, in blocks, of this view.
     #[inline]
     fn height_in_blocks(&self, block_dimensions: (Dimension, Dimension)) -> Dimension {
         div_ceil!(self.height(), block_dimensions.1)
     }
 
+    /// The dimensions, in blocks, of this view. Equivalent to `(width_in_blocks, height_in_blocks)`.
     #[inline]
     fn dimensions_in_blocks(
         &self,
@@ -340,6 +343,7 @@ trait BlockOps: ImgView {
         )
     }
 
+    /// The size, in blocks, of this view. Equivalent to `width_in_blocks * height_in_blocks`.
     #[inline]
     fn size_in_blocks(&self, block_dimensions: (Dimension, Dimension)) -> Dimension {
         self.width_in_blocks(block_dimensions) * self.height_in_blocks(block_dimensions)
@@ -352,7 +356,7 @@ impl<I> BlockOps for I where I: ImgView {}
 ///
 /// See [`BlockOps`] for more information.
 trait BlockOpsMut: BlockOps + ImgViewMut {
-    /// Returns a block view into this view. If the block isn't contained in this view, returns `None`.
+    /// Returns a mutable block view into this view. If the block isn't contained in this view, returns `None`.
     /// Note that `block_coords` is in block coordinates.
     fn block_mut(
         &mut self,
