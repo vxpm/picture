@@ -1,7 +1,8 @@
+use super::BlockOps;
 use crate::{
     pixel::Pixel,
-    prelude::{Dimension, Rect},
-    util::{dimension_to_usize, index_point, macros::div_ceil},
+    prelude::Dimension,
+    util::{dimension_to_usize, index_point},
     view::ImgView,
     Point,
 };
@@ -129,8 +130,7 @@ pub struct Blocks<'view_ref, P, V> {
     view: &'view_ref V,
     current_x: Dimension,
     current_y: Dimension,
-    block_width: Dimension,
-    block_height: Dimension,
+    block_dimensions: (Dimension, Dimension),
     _phantom: PhantomData<&'view_ref [P]>,
 }
 
@@ -140,13 +140,12 @@ where
     V: ImgView<Pixel = P>,
 {
     #[inline]
-    pub fn new(view: &'view_ref V, block_width: Dimension, block_height: Dimension) -> Self {
+    pub fn new(view: &'view_ref V, block_dimensions: (Dimension, Dimension)) -> Self {
         Self {
             view,
             current_x: 0,
             current_y: 0,
-            block_width,
-            block_height,
+            block_dimensions,
             _phantom: PhantomData,
         }
     }
@@ -163,27 +162,15 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         let current_coords = (self.current_x, self.current_y);
 
-        let width = if self.current_x + self.block_width > self.view.width() {
-            self.view.width() - self.current_x
-        } else {
-            self.block_width
-        };
-
-        let height = if self.current_y + self.block_height > self.view.height() {
-            self.view.height() - self.current_y
-        } else {
-            self.block_height
-        };
-
         let v = self
             .view
-            .view(Rect::new(current_coords, (width, height)))
+            .block(current_coords, self.block_dimensions)
             .map(|p| (current_coords, p));
 
-        self.current_x += width;
-        if self.current_x >= self.view.width() {
+        self.current_x += 1;
+        if self.current_x >= self.view.width_in_blocks(self.block_dimensions.0) {
             self.current_x = 0;
-            self.current_y += height;
+            self.current_y += 1;
         }
 
         v
@@ -192,16 +179,10 @@ where
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         // can be made into an exact hint but i'm too lazy
-        let width_in_blocks = div_ceil!(
-            dimension_to_usize(self.view.width()),
-            dimension_to_usize(self.block_width)
-        );
-        let height_in_blocks = div_ceil!(
-            dimension_to_usize(self.view.height()),
-            dimension_to_usize(self.block_height)
-        );
-        let size = width_in_blocks
-            .checked_mul(height_in_blocks)
+        let size = dimension_to_usize(self.view.width_in_blocks(self.block_dimensions.0))
+            .checked_mul(dimension_to_usize(
+                self.view.height_in_blocks(self.block_dimensions.1),
+            ))
             .expect("size shouldn't overflow");
 
         (0, Some(size))
