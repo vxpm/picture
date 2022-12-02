@@ -291,7 +291,7 @@ pub trait ImgViewMut: ImgView {
 /// of the view. A block is simply one of those tiles.
 /// Note that some blocks might be smaller than `block_dimensions` due to the dimensions of the
 /// view not being exactly divisible by it.
-trait BlockOps: ImgView {
+pub trait BlockOps: ImgView {
     /// Returns a block view into this view. If the block isn't contained in this view, returns `None`.
     /// Note that `block_coords` is in block coordinates.
     fn block(
@@ -355,7 +355,7 @@ impl<I> BlockOps for I where I: ImgView {}
 /// Trait that extends [`ImgViewMut`] with mutable block-related methods.
 ///
 /// See [`BlockOps`] for more information.
-trait BlockOpsMut: BlockOps + ImgViewMut {
+pub trait BlockOpsMut: BlockOps + ImgViewMut {
     /// Returns a mutable block view into this view. If the block isn't contained in this view, returns `None`.
     /// Note that `block_coords` is in block coordinates.
     fn block_mut(
