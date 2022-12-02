@@ -1,10 +1,10 @@
-use super::ImageBuffer;
+use super::ImgBuf;
 use crate::pixel::common::*;
 
 macro_rules! img_ty {
     ($pixel:ident) => {
         paste::paste! {
-            pub type [<$pixel:camel Image>] = ImageBuffer<$pixel, Vec<$pixel>>;
+            pub type [<$pixel:camel Img>] = ImgBuf<$pixel, Vec<$pixel>>;
         }
     };
 }

@@ -56,7 +56,7 @@ fn main() {
 
 # disjoint mutable views example
 one of the coolest features of `picture` is the ability to have disjoint mutable views into a view.
-the following example swaps the two horizontal halves of an `ImageBuffer` and then saves the result.
+the following example swaps the two horizontal halves of an `ImgBuf` and then saves the result.
 ```rust
 use picture::{
     formats::png::{PngDecoder, PngEncoder, PngImage},
@@ -66,8 +66,8 @@ use std::io::Write;
 
 fn swap<I1, I2, P>(a: &mut I1, b: &mut I2)
 where
-    I1: ImageViewMut<Pixel = P>,
-    I2: ImageViewMut<Pixel = P>,
+    I1: ImgViewMut<Pixel = P>,
+    I2: ImgViewMut<Pixel = P>,
 {
     assert!(a.dimensions() == b.dimensions());
     a.pixels_mut()
@@ -94,7 +94,7 @@ fn main() {
 ```
 (you can find this code in the [examples](examples/swap.rs) as well!)
 
-the `ImageViewMut` trait has many methods to obtain disjoint mutable views: `split_x_at_mut`, 
+the `ImgViewMut` trait has many methods to obtain disjoint mutable views: `split_x_at_mut`, 
 `split_y_at_mut` and `view_mut_multiple`.
 
 # performance

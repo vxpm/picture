@@ -4,16 +4,16 @@ use picture::{
 };
 use std::io::Write;
 
-fn diff<I1, I2>(a: &I1, b: &I2) -> Rgba8Image
+fn diff<I1, I2>(a: &I1, b: &I2) -> Rgba8Img
 where
-    I1: ImageView<Pixel = RGBA8>,
-    I2: ImageView<Pixel = RGBA8>,
+    I1: ImgView<Pixel = RGBA8>,
+    I2: ImgView<Pixel = RGBA8>,
 {
     assert!(a.dimensions() == b.dimensions());
 
     let mut iter = a.pixels().zip(b.pixels());
 
-    Rgba8Image::from_fn(a.width(), a.height(), move |_| {
+    Rgba8Img::from_fn(a.width(), a.height(), move |_| {
         let (a, b) = iter.next().unwrap();
         RGBA8 {
             r: a.r.abs_diff(b.r),

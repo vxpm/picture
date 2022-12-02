@@ -1,5 +1,5 @@
 use crate::{
-    prelude::{Dimension, ImageBuffer, ImageView, Pixel, Rgb8Image, Rgba8Image},
+    prelude::{Dimension, ImgBuf, ImgView, Pixel, Rgb8Img, Rgba8Img},
     util::{dimension_to_u32, dimension_to_usize, Array},
 };
 use either::Either;
@@ -13,7 +13,7 @@ pub use qoi::Error as QoiError;
 pub struct QoiDecoder;
 
 impl QoiDecoder {
-    pub fn decode<B>(&mut self, data: B) -> Result<Either<Rgb8Image, Rgba8Image>, QoiError>
+    pub fn decode<B>(&mut self, data: B) -> Result<Either<Rgb8Img, Rgba8Img>, QoiError>
     where
         B: AsRef<[u8]>,
     {
@@ -24,7 +24,7 @@ impl QoiDecoder {
                     vec![RGB8::new(0, 0, 0); decoder.required_buf_len() / 3];
                 decoder.decode_to_buf(bytemuck::cast_slice_mut(&mut container))?;
 
-                Ok(Either::Left(ImageBuffer::from_container(
+                Ok(Either::Left(ImgBuf::from_container(
                     container,
                     decoder.header().width as Dimension,
                     decoder.header().height as Dimension,
@@ -35,7 +35,7 @@ impl QoiDecoder {
                     vec![RGBA8::new(0, 0, 0, 0); decoder.required_buf_len() / 4];
                 decoder.decode_to_buf(bytemuck::cast_slice_mut(&mut container))?;
 
-                Ok(Either::Right(ImageBuffer::from_container(
+                Ok(Either::Right(ImgBuf::from_container(
                     container,
                     decoder.header().width as Dimension,
                     decoder.header().height as Dimension,
@@ -44,10 +44,7 @@ impl QoiDecoder {
         }
     }
 
-    pub fn decode_from_path<P>(
-        &mut self,
-        path: P,
-    ) -> Result<Either<Rgb8Image, Rgba8Image>, QoiError>
+    pub fn decode_from_path<P>(&mut self, path: P) -> Result<Either<Rgb8Img, Rgba8Img>, QoiError>
     where
         P: AsRef<Path>,
     {
@@ -80,7 +77,7 @@ impl Default for QoiEncoder {
 impl QoiEncoder {
     pub fn encode<I>(self, view: I) -> Result<Vec<u8>, QoiError>
     where
-        I: ImageView,
+        I: ImgView,
         I::Pixel: Pixel,
     {
         let mut buffer: Vec<u8> = Vec::with_capacity(

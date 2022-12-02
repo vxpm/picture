@@ -1,7 +1,7 @@
-use super::ImageBuffer;
+use super::ImgBuf;
 use crate::{
     pixel::Pixel,
-    view::{ImageView, ImageViewMut},
+    view::{ImgView, ImgViewMut},
     Dimension, Point,
 };
 #[cfg(feature = "unstable")]
@@ -11,9 +11,9 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-/// Iterator over the pixels of a [`ImageBuffer`].
+/// Iterator over the pixels of a [`ImgBuf`].
 pub type Pixels<'buffer_ref, P> = std::slice::Iter<'buffer_ref, P>;
-/// Mutable iterator over the pixels of a [`ImageBuffer`].
+/// Mutable iterator over the pixels of a [`ImgBuf`].
 pub type PixelsMut<'buffer_ref, P> = std::slice::IterMut<'buffer_ref, P>;
 
 // this will result in a compile-error if either of these isn't TrustedLen.
@@ -26,7 +26,7 @@ impl<'buffer_ref, P> EnsureTrustedLen for Pixels<'buffer_ref, P> {}
 #[cfg(feature = "unstable")]
 impl<'buffer_ref, P> EnsureTrustedLen for PixelsMut<'buffer_ref, P> {}
 
-/// Iterator over the pixels of a [`ImageBuffer`] with their respective coordinates.
+/// Iterator over the pixels of a [`ImgBuf`] with their respective coordinates.
 #[derive(Clone)]
 pub struct PixelsWithCoords<'buffer_ref, P> {
     pixels: Pixels<'buffer_ref, P>,
@@ -40,7 +40,7 @@ where
     P: Pixel,
 {
     #[inline]
-    pub fn new<C>(buffer: &'buffer_ref ImageBuffer<P, C>) -> Self
+    pub fn new<C>(buffer: &'buffer_ref ImgBuf<P, C>) -> Self
     where
         C: Deref<Target = [P]>,
     {
@@ -98,7 +98,7 @@ impl<'buffer_ref, P> FusedIterator for PixelsWithCoords<'buffer_ref, P> {}
 // implements TrustedLen, PixelsWithCoords can be TrustedLen as well!
 unsafe impl<'buffer_ref, P> TrustedLen for PixelsWithCoords<'buffer_ref, P> {}
 
-/// Mutable iterator over the pixels of a [`ImageBuffer`] with their respective coordinates.
+/// Mutable iterator over the pixels of a [`ImgBuf`] with their respective coordinates.
 pub struct PixelsWithCoordsMut<'buffer_ref, P> {
     pixels: PixelsMut<'buffer_ref, P>,
     current_x: Dimension,
@@ -111,7 +111,7 @@ where
     P: Pixel,
 {
     #[inline]
-    pub fn new<C>(buffer: &'buffer_ref mut ImageBuffer<P, C>) -> Self
+    pub fn new<C>(buffer: &'buffer_ref mut ImgBuf<P, C>) -> Self
     where
         C: DerefMut<Target = [P]>,
     {

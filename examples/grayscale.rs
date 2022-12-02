@@ -6,7 +6,7 @@ use std::io::Write;
 
 fn grayscale<I1>(img: &mut I1)
 where
-    I1: ImageViewMut<Pixel = RGB8>,
+    I1: ImgViewMut<Pixel = RGB8>,
 {
     for p in img.pixels_mut() {
         let avg = ((p.r as u16 + p.g as u16 + p.b as u16) / 3) as u8;

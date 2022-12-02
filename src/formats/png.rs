@@ -1,9 +1,9 @@
 use crate::pixel::common::*;
-use crate::prelude::{ImageView, Pixel};
+use crate::prelude::{ImgView, Pixel};
 use crate::util::{dimension_to_usize, Array};
 use crate::{
-    buffer::common::{Gray8Image, Graya8Image},
-    prelude::{Rgb8Image, Rgba8Image},
+    buffer::common::{Gray8Img, Graya8Img},
+    prelude::{Rgb8Img, Rgba8Img},
 };
 use std::{io::Read, path::Path};
 use thiserror::Error;
@@ -26,10 +26,10 @@ pub enum PngError {
 }
 
 pub enum PngImage {
-    Gray(Gray8Image),
-    GrayAlpha(Graya8Image),
-    Rgb(Rgb8Image),
-    Rgba(Rgba8Image),
+    Gray(Gray8Img),
+    GrayAlpha(Graya8Img),
+    Rgb(Rgb8Img),
+    Rgba(Rgba8Img),
 }
 
 pub struct PngDecoder;
@@ -56,16 +56,16 @@ impl PngDecoder {
 
         Ok(match reader.info().color_type {
             png::ColorType::Grayscale => {
-                inner!(GRAY8, 1, Gray, Gray8Image)
+                inner!(GRAY8, 1, Gray, Gray8Img)
             }
             png::ColorType::GrayscaleAlpha => {
-                inner!(GRAYA8, 2, GrayAlpha, Graya8Image)
+                inner!(GRAYA8, 2, GrayAlpha, Graya8Img)
             }
             png::ColorType::Rgb => {
-                inner!(RGB8, 3, Rgb, Rgb8Image)
+                inner!(RGB8, 3, Rgb, Rgb8Img)
             }
             png::ColorType::Rgba => {
-                inner!(RGBA8, 4, Rgba, Rgba8Image)
+                inner!(RGBA8, 4, Rgba, Rgba8Img)
             }
             png::ColorType::Indexed => return Err(PngError::Indexed),
         })
@@ -106,7 +106,7 @@ impl Default for PngEncoder {
 impl PngEncoder {
     pub fn encode<I>(self, view: I) -> Result<Vec<u8>, PngError>
     where
-        I: ImageView,
+        I: ImgView,
         I::Pixel: Pixel,
     {
         let mut buffer: Vec<u8> = Vec::with_capacity(

@@ -2,16 +2,16 @@ use crate::{
     pixel::Pixel,
     prelude::{Dimension, Rect},
     util::{dimension_to_usize, index_point, macros::div_ceil},
-    view::ImageView,
+    view::ImgView,
     Point,
 };
 use std::{iter::FusedIterator, marker::PhantomData};
 
-/// Iterator over the pixels of an [`ImageView`] and their relative coordinates.
+/// Iterator over the pixels of an [`ImgView`] and their relative coordinates.
 #[derive(Debug, Clone)]
 pub struct PixelsWithCoords<'view_ref, V>
 where
-    V: ImageView,
+    V: ImgView,
 {
     view: &'view_ref V,
     current_x: Dimension,
@@ -20,7 +20,7 @@ where
 
 impl<'view_ref, V> PixelsWithCoords<'view_ref, V>
 where
-    V: ImageView,
+    V: ImgView,
 {
     #[inline]
     pub fn new(view: &'view_ref V) -> Self {
@@ -34,7 +34,7 @@ where
 
 impl<'view_ref, V> Iterator for PixelsWithCoords<'view_ref, V>
 where
-    V: ImageView,
+    V: ImgView,
 {
     type Item = (Point, &'view_ref V::Pixel);
 
@@ -75,17 +75,17 @@ where
     }
 }
 
-impl<'view_ref, V> ExactSizeIterator for PixelsWithCoords<'view_ref, V> where V: ImageView {}
-impl<'view_ref, V> FusedIterator for PixelsWithCoords<'view_ref, V> where V: ImageView {}
+impl<'view_ref, V> ExactSizeIterator for PixelsWithCoords<'view_ref, V> where V: ImgView {}
+impl<'view_ref, V> FusedIterator for PixelsWithCoords<'view_ref, V> where V: ImgView {}
 
-/// Iterator over the pixels of an [`ImageView`].
+/// Iterator over the pixels of an [`ImgView`].
 pub struct Pixels<'view_ref, V>(PixelsWithCoords<'view_ref, V>)
 where
-    V: ImageView;
+    V: ImgView;
 
 impl<'view_ref, V> Pixels<'view_ref, V>
 where
-    V: ImageView,
+    V: ImgView,
 {
     #[inline]
     pub fn new(view: &'view_ref V) -> Self {
@@ -95,7 +95,7 @@ where
 
 impl<'view_ref, V> Iterator for Pixels<'view_ref, V>
 where
-    V: ImageView,
+    V: ImgView,
 {
     type Item = &'view_ref V::Pixel;
 
@@ -116,11 +116,11 @@ where
     }
 }
 
-impl<'view_ref, V> ExactSizeIterator for Pixels<'view_ref, V> where V: ImageView {}
-impl<'view_ref, V> FusedIterator for Pixels<'view_ref, V> where V: ImageView {}
+impl<'view_ref, V> ExactSizeIterator for Pixels<'view_ref, V> where V: ImgView {}
+impl<'view_ref, V> FusedIterator for Pixels<'view_ref, V> where V: ImgView {}
 
 // TODO: better specify the behaviour of this iterator
-/// Iterator over block views of an [`ImageView`] and their relative coordinates.
+/// Iterator over block views of an [`ImgView`] and their relative coordinates.
 ///
 /// While most blocks will have the specified dimensions, some might be smaller due to the original view dimensions
 /// not being exactly divisible.
@@ -137,7 +137,7 @@ pub struct Blocks<'view_ref, P, V> {
 impl<'view_ref, P, V> Blocks<'view_ref, P, V>
 where
     P: Pixel,
-    V: ImageView<Pixel = P>,
+    V: ImgView<Pixel = P>,
 {
     #[inline]
     pub fn new(view: &'view_ref V, block_width: Dimension, block_height: Dimension) -> Self {
@@ -155,7 +155,7 @@ where
 impl<'view_ref, P, V> Iterator for Blocks<'view_ref, P, V>
 where
     P: Pixel,
-    V: ImageView<Pixel = P>,
+    V: ImgView<Pixel = P>,
 {
     type Item = (Point, V::View<'view_ref>);
 
@@ -209,4 +209,4 @@ where
 }
 
 #[rustfmt::skip]
-impl<'view_ref, P, V> FusedIterator for Blocks<'view_ref, P, V> where P: Pixel, V: ImageView<Pixel = P>, {}
+impl<'view_ref, P, V> FusedIterator for Blocks<'view_ref, P, V> where P: Pixel, V: ImgView<Pixel = P>, {}

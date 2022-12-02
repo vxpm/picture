@@ -4,7 +4,7 @@ use std::io::Write;
 fn main() {
     // based on the fractal example of the 'image' crate
     let (width, height) = (1024, 1024);
-    let mut img = Rgb8Image::new(width, height);
+    let mut img = Rgb8Img::new(width, height);
 
     let scalex = 3.0 / width as f32;
     let scaley = 3.0 / height as f32;

@@ -4,12 +4,12 @@ use picture::{
 };
 use std::io::Write;
 
-// equivalent to ImageViewMut::swap_with.
+// equivalent to ImgViewMut::swap_with.
 // reimplemented here for demonstration purposes
 fn swap<I1, I2, P>(a: &mut I1, b: &mut I2)
 where
-    I1: ImageViewMut<Pixel = P>,
-    I2: ImageViewMut<Pixel = P>,
+    I1: ImgViewMut<Pixel = P>,
+    I2: ImgViewMut<Pixel = P>,
 {
     assert!(a.dimensions() == b.dimensions());
     a.pixels_mut()

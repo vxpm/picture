@@ -1,4 +1,4 @@
-use super::ImageBufferViewMut;
+use super::ImgBufViewMut;
 use crate::{
     pixel::Pixel,
     prelude::Rect,
@@ -9,7 +9,7 @@ use crate::{
 use std::iter::TrustedLen;
 use std::{iter::FusedIterator, marker::PhantomData, ptr::NonNull};
 
-/// Iterator over the pixels of a [`ImageBufferViewMut`] and their relative coordinates.
+/// Iterator over the pixels of a [`ImgBufViewMut`] and their relative coordinates.
 #[derive(Debug, Clone)]
 pub struct PixelsWithCoordsMut<'buffer_ref, P> {
     ptr: NonNull<P>,
@@ -22,7 +22,7 @@ pub struct PixelsWithCoordsMut<'buffer_ref, P> {
 
 impl<'buffer_ref, P> PixelsWithCoordsMut<'buffer_ref, P> {
     #[inline]
-    pub fn new<'view_ref>(view: &'view_ref mut ImageBufferViewMut<'buffer_ref, P>) -> Self {
+    pub fn new<'view_ref>(view: &'view_ref mut ImgBufViewMut<'buffer_ref, P>) -> Self {
         Self {
             ptr: view.ptr,
             buffer_width: view.buffer_width,
@@ -100,12 +100,12 @@ impl<'buffer_ref, P> FusedIterator for PixelsWithCoordsMut<'buffer_ref, P> where
 // there's a test for this: with_coords_mut_trusted_len.
 unsafe impl<'buffer_ref, P> TrustedLen for PixelsWithCoordsMut<'buffer_ref, P> where P: Pixel {}
 
-/// Iterator over the pixels of a [`ImageBufferViewMut`].
+/// Iterator over the pixels of a [`ImgBufViewMut`].
 pub struct PixelsMut<'view_ref, P>(PixelsWithCoordsMut<'view_ref, P>);
 
 impl<'buffer_ref, P> PixelsMut<'buffer_ref, P> {
     #[inline]
-    pub fn new<'view_ref>(view: &'view_ref mut ImageBufferViewMut<'buffer_ref, P>) -> Self {
+    pub fn new<'view_ref>(view: &'view_ref mut ImgBufViewMut<'buffer_ref, P>) -> Self {
         Self(PixelsWithCoordsMut::new(view))
     }
 }
@@ -151,7 +151,7 @@ mod tests {
     proptest! {
         #[test]
         fn with_coords_mut_trusted_len(width in 1..256u32, height in 1..256u32) {
-            let mut buffer = Rgb8Image::new(width, height);
+            let mut buffer = Rgb8Img::new(width, height);
             let mut view = buffer.view_mut(buffer.bounds()).unwrap();
             let mut iter = view.pixels_with_coords_mut();
 
@@ -167,7 +167,7 @@ mod tests {
 
         #[test]
         fn mut_trusted_len(width in 1..256u32, height in 1..256u32) {
-            let mut buffer = Rgb8Image::new(width, height);
+            let mut buffer = Rgb8Img::new(width, height);
             let mut view = buffer.view_mut(buffer.bounds()).unwrap();
             let mut iter = view.pixels_mut();
 

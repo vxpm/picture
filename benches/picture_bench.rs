@@ -6,8 +6,8 @@ use picture::{
 };
 
 #[inline]
-fn picture_fractal((width, height): (Dimension, Dimension)) -> Rgb8Image {
-    let mut img = Rgb8Image::new(width, height);
+fn picture_fractal((width, height): (Dimension, Dimension)) -> Rgb8Img {
+    let mut img = Rgb8Img::new(width, height);
 
     let scalex = 3.0 / width as f32;
     let scaley = 3.0 / height as f32;
@@ -74,8 +74,8 @@ fn fractal(c: &mut Criterion) {
 
 fn picture_diff<I1, I2>(a: &I1, b: &I2) -> u64
 where
-    I1: ImageView<Pixel = RGB8>,
-    I2: ImageView<Pixel = RGB8>,
+    I1: ImgView<Pixel = RGB8>,
+    I2: ImgView<Pixel = RGB8>,
 {
     a.pixels()
         .flat_map(|p| p.channels())
@@ -97,8 +97,8 @@ where
 }
 
 fn diff(c: &mut Criterion) {
-    let picture_img_a = Rgb8Image::from_fn(256, 256, |(x, y)| RGB8::new(x as u8, y as u8, 0));
-    let picture_img_b = Rgb8Image::from_fn(256, 256, |(x, y)| RGB8::new(0, x as u8, y as u8));
+    let picture_img_a = Rgb8Img::from_fn(256, 256, |(x, y)| RGB8::new(x as u8, y as u8, 0));
+    let picture_img_b = Rgb8Img::from_fn(256, 256, |(x, y)| RGB8::new(0, x as u8, y as u8));
 
     let image_img_a = image::RgbImage::from_fn(256, 256, |x, y| image::Rgb([x as u8, y as u8, 0]));
     let image_img_b = image::RgbImage::from_fn(256, 256, |x, y| image::Rgb([0, x as u8, y as u8]));
@@ -115,8 +115,8 @@ fn diff(c: &mut Criterion) {
 
 fn picture_match<I1, I2>(source: &I1, target: &I2) -> Rect
 where
-    I1: ImageView<Pixel = RGB8>,
-    I2: ImageView<Pixel = RGB8>,
+    I1: ImgView<Pixel = RGB8>,
+    I2: ImgView<Pixel = RGB8>,
 {
     // given 'source', find the block that matches most closely the 'target'
     let max_x = source.dimensions().0 - target.dimensions().0;
@@ -166,7 +166,7 @@ where
 }
 
 fn closest_match(c: &mut Criterion) {
-    let picture_img_a = Rgb8Image::from_fn(256, 256, |(x, y)| RGB8::new(x as u8, y as u8, 0));
+    let picture_img_a = Rgb8Img::from_fn(256, 256, |(x, y)| RGB8::new(x as u8, y as u8, 0));
     let picture_img_b = picture_img_a.view(Rect::new((128, 128), (16, 16))).unwrap();
 
     let image_img_a = image::RgbImage::from_fn(256, 256, |x, y| image::Rgb([x as u8, y as u8, 75]));

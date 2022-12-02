@@ -8,7 +8,7 @@ pub mod view;
 use crate::{
     pixel::Pixel,
     util::{dimension_to_usize, index_point, macros::debug_assertions, Rect},
-    view::{ImageView, ImageViewMut},
+    view::{ImgView, ImgViewMut},
     Dimension, Point,
 };
 use std::{
@@ -16,21 +16,21 @@ use std::{
     ops::{Deref, DerefMut},
     ptr::NonNull,
 };
-use view::{ImageBufferView, ImageBufferViewMut};
+use view::{ImgBufView, ImgBufViewMut};
 
 /// An image buffer.
 ///
 /// `P` is it's pixel type and `C` it's container type.
 #[derive(Debug, Clone)]
-pub struct ImageBuffer<P, C> {
+pub struct ImgBuf<P, C> {
     width: Dimension,
     height: Dimension,
     data: C,
     _phantom: PhantomData<P>,
 }
 
-impl<P> ImageBuffer<P, Vec<P>> {
-    /// Creates a new [`ImageBuffer`] with the specified `width` and `height` from a function that generates pixels.
+impl<P> ImgBuf<P, Vec<P>> {
+    /// Creates a new [`ImgBuf`] with the specified `width` and `height` from a function that generates pixels.
     pub fn from_fn<F>(width: Dimension, height: Dimension, f: F) -> Self
     where
         F: FnMut(Point) -> P,
@@ -44,11 +44,11 @@ impl<P> ImageBuffer<P, Vec<P>> {
     }
 }
 
-impl<P> ImageBuffer<P, Vec<P>>
+impl<P> ImgBuf<P, Vec<P>>
 where
     P: Clone,
 {
-    /// Creates a new [`ImageBuffer`] with the specified `width` and `height` and [`Vec`] as it's container type.
+    /// Creates a new [`ImgBuf`] with the specified `width` and `height` and [`Vec`] as it's container type.
     #[inline]
     pub fn new(width: Dimension, height: Dimension) -> Self
     where
@@ -63,7 +63,7 @@ where
     }
 }
 
-impl<P, C> ImageBuffer<P, C>
+impl<P, C> ImgBuf<P, C>
 where
     C: Deref<Target = [P]>,
 {
@@ -96,13 +96,13 @@ where
 
     /// Converts this image buffer into another by applying a mapping function to each
     /// of it's pixels.
-    pub fn map<P2, C2, F>(self, f: F) -> ImageBuffer<P2, C2>
+    pub fn map<P2, C2, F>(self, f: F) -> ImgBuf<P2, C2>
     where
         C: IntoIterator<Item = P>,
         C2: Deref<Target = [P2]> + FromIterator<P2>,
         F: FnMut(P) -> P2,
     {
-        <ImageBuffer<P2, C2>>::from_container(
+        <ImgBuf<P2, C2>>::from_container(
             self.data.into_iter().map(f).collect(),
             self.width,
             self.height,
@@ -111,12 +111,12 @@ where
 
     /// Converts this image buffer into another with [`Vec`] as it's container by applying
     /// a mapping function to each of it's pixels.
-    pub fn map_vec<P2, F>(self, f: F) -> ImageBuffer<P2, Vec<P2>>
+    pub fn map_vec<P2, F>(self, f: F) -> ImgBuf<P2, Vec<P2>>
     where
         C: IntoIterator<Item = P>,
         F: FnMut(P) -> P2,
     {
-        <ImageBuffer<P2, Vec<P2>>>::from_container(
+        <ImgBuf<P2, Vec<P2>>>::from_container(
             self.data.into_iter().map(f).collect(),
             self.width,
             self.height,
@@ -139,7 +139,7 @@ where
     }
 }
 
-impl<P, C> ImageBuffer<P, C>
+impl<P, C> ImgBuf<P, C>
 where
     P: Pixel,
     C: Deref<Target = [P]>,
@@ -151,7 +151,7 @@ where
     }
 }
 
-impl<P, C> ImageBuffer<P, C>
+impl<P, C> ImgBuf<P, C>
 where
     C: DerefMut<Target = [P]>,
 {
@@ -173,7 +173,7 @@ where
     }
 }
 
-impl<P, C> ImageBuffer<P, C>
+impl<P, C> ImgBuf<P, C>
 where
     P: Pixel,
     C: DerefMut<Target = [P]>,
@@ -199,7 +199,7 @@ where
     }
 }
 
-impl<P, C> ImageView for ImageBuffer<P, C>
+impl<P, C> ImgView for ImgBuf<P, C>
 where
     P: Pixel,
     C: Deref<Target = [P]>,
@@ -209,7 +209,7 @@ where
     where
         Self: 'buffer_ref;
 
-    type View<'buffer_ref> = ImageBufferView<'buffer_ref, Self::Pixel>
+    type View<'buffer_ref> = ImgBufView<'buffer_ref, Self::Pixel>
     where
         Self::Pixel: 'buffer_ref,
         C: 'buffer_ref;
@@ -250,11 +250,11 @@ where
     #[inline]
     unsafe fn view_unchecked(&self, bounds: Rect) -> Self::View<'_> {
         debug_assert!(self.bounds().contains_rect(&bounds));
-        view::ImageBufferView::new(self, bounds)
+        view::ImgBufView::new(self, bounds)
     }
 }
 
-impl<P, C> ImageViewMut for ImageBuffer<P, C>
+impl<P, C> ImgViewMut for ImgBuf<P, C>
 where
     P: Pixel,
     C: DerefMut<Target = [P]>,
@@ -263,7 +263,7 @@ where
     where
         Self: 'buffer_ref;
 
-    type ViewMut<'buffer_ref> = ImageBufferViewMut<'buffer_ref, Self::Pixel>
+    type ViewMut<'buffer_ref> = ImgBufViewMut<'buffer_ref, Self::Pixel>
     where
         Self::Pixel: 'buffer_ref, C: 'buffer_ref;
 
@@ -288,7 +288,7 @@ where
     #[inline]
     unsafe fn view_mut_unchecked(&mut self, bounds: Rect) -> Self::ViewMut<'_> {
         debug_assert!(self.bounds().contains_rect(&bounds));
-        view::ImageBufferViewMut::new(self, bounds)
+        view::ImgBufViewMut::new(self, bounds)
     }
 
     fn view_mut_multiple_unchecked<const N: usize>(
@@ -299,7 +299,7 @@ where
         let result: arrayvec::ArrayVec<Self::ViewMut<'_>, N> = bounds
             .into_iter()
             // SAFETY: we trust the caller!
-            .map(|b| unsafe { view::ImageBufferViewMut::from_ptr(ptr, self.width, b) })
+            .map(|b| unsafe { view::ImgBufViewMut::from_ptr(ptr, self.width, b) })
             .collect();
 
         result
@@ -317,12 +317,12 @@ where
             .bounds()
             .contains_rect(&left_bounds)
             // SAFETY: safe because 'left_bounds' is checked to be contained within the buffer.
-            .then(|| unsafe { view::ImageBufferViewMut::from_ptr(ptr, self.width, left_bounds) });
+            .then(|| unsafe { view::ImgBufViewMut::from_ptr(ptr, self.width, left_bounds) });
         let right = self
             .bounds()
             .contains_rect(&right_bounds)
             // SAFETY: safe because 'right_bounds' is checked to be contained within the buffer.
-            .then(|| unsafe { view::ImageBufferViewMut::from_ptr(ptr, self.width, right_bounds) });
+            .then(|| unsafe { view::ImgBufViewMut::from_ptr(ptr, self.width, right_bounds) });
 
         left.and_then(|left| right.map(|right| (left, right)))
     }
@@ -336,18 +336,18 @@ where
             .bounds()
             .contains_rect(&upper_bounds)
             // SAFETY: safe because 'upper_bounds' is checked to be contained within the buffer.
-            .then(|| unsafe { view::ImageBufferViewMut::from_ptr(ptr, self.width, upper_bounds) });
+            .then(|| unsafe { view::ImgBufViewMut::from_ptr(ptr, self.width, upper_bounds) });
         let lower = self
             .bounds()
             .contains_rect(&lower_bounds)
             // SAFETY: safe because 'lower_bounds' is checked to be contained within the buffer.
-            .then(|| unsafe { view::ImageBufferViewMut::from_ptr(ptr, self.width, lower_bounds) });
+            .then(|| unsafe { view::ImgBufViewMut::from_ptr(ptr, self.width, lower_bounds) });
 
         upper.and_then(|upper| lower.map(|lower| (upper, lower)))
     }
 }
 
-impl<P, C> IntoIterator for ImageBuffer<P, C>
+impl<P, C> IntoIterator for ImgBuf<P, C>
 where
     P: Pixel,
     C: IntoIterator<Item = P>,
@@ -361,28 +361,28 @@ where
     }
 }
 
-impl<'view_ref, P, C> IntoIterator for &'view_ref ImageBuffer<P, C>
+impl<'view_ref, P, C> IntoIterator for &'view_ref ImgBuf<P, C>
 where
     P: Pixel,
     C: Deref<Target = [P]>,
 {
     type Item = &'view_ref P;
 
-    type IntoIter = <ImageBuffer<P, C> as ImageView>::Pixels<'view_ref>;
+    type IntoIter = <ImgBuf<P, C> as ImgView>::Pixels<'view_ref>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.pixels()
     }
 }
 
-impl<'view_ref, P, C> IntoIterator for &'view_ref mut ImageBuffer<P, C>
+impl<'view_ref, P, C> IntoIterator for &'view_ref mut ImgBuf<P, C>
 where
     P: Pixel,
     C: DerefMut<Target = [P]>,
 {
     type Item = &'view_ref mut P;
 
-    type IntoIter = <ImageBuffer<P, C> as ImageViewMut>::PixelsMut<'view_ref>;
+    type IntoIter = <ImgBuf<P, C> as ImgViewMut>::PixelsMut<'view_ref>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.pixels_mut()

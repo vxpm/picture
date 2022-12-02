@@ -1,16 +1,16 @@
 /// Default iterator types.
 pub mod iter;
 
-use crate::{buffer::ImageBuffer, pixel::Pixel, prelude::Dimension, util::Rect, Point};
+use crate::{buffer::ImgBuf, pixel::Pixel, prelude::Dimension, util::Rect, Point};
 
-// types: ImageBuffer, ImageBufferView, ImageBufferViewMut
+// types: ImgBuf, ImgBufView, ImgBufViewMut
 //
-// Trait         | Implemented for...
-// ImageView    -> ImageBuffer, ImageBufferView, ImageBufferViewMut
-// ImageViewMut -> ImageBuffer, ImageBufferViewMut
+// Trait       | Implemented for...
+// ImgView    -> ImgBuf, ImgBufView, ImgBufViewMut
+// ImgViewMut -> ImgBuf, ImgBufViewMut
 
 /// Trait for types that can be treated as a view into some image.
-pub trait ImageView {
+pub trait ImgView {
     /// The pixel type of this view.
     type Pixel: Pixel;
 
@@ -20,7 +20,7 @@ pub trait ImageView {
         Self: 'view_ref;
 
     /// The view type the `view` method returns.
-    type View<'view_ref>: ImageView<Pixel = Self::Pixel>
+    type View<'view_ref>: ImgView<Pixel = Self::Pixel>
     where
         Self: 'view_ref;
 
@@ -145,29 +145,29 @@ pub trait ImageView {
         Ok(())
     }
 
-    /// Creates an [`ImageBuffer`] from this view with [`Vec`] as it's container.
+    /// Creates an [`ImgBuf`] from this view with [`Vec`] as it's container.
     #[inline]
-    fn to_buffer(&self) -> ImageBuffer<Self::Pixel, Vec<Self::Pixel>>
+    fn to_buffer(&self) -> ImgBuf<Self::Pixel, Vec<Self::Pixel>>
     where
         Self::Pixel: Clone,
     {
         // SAFETY: the coordinates are always going to be in bounds since the
         // new buffer and self have the same dimensions
-        ImageBuffer::from_fn(self.width(), self.height(), |(x, y)| unsafe {
+        ImgBuf::from_fn(self.width(), self.height(), |(x, y)| unsafe {
             self.pixel_unchecked((x, y)).clone()
         })
     }
 }
 
 /// Trait for types that can be treated as a mutable view into some image.
-pub trait ImageViewMut: ImageView {
+pub trait ImgViewMut: ImgView {
     /// The type of the iterator through mutable pixels of this view.
     type PixelsMut<'view_ref>: Iterator<Item = &'view_ref mut Self::Pixel>
     where
         Self: 'view_ref;
 
     /// The mutable view type the `view_mut` method returns.
-    type ViewMut<'view_ref>: ImageViewMut<Pixel = Self::Pixel>
+    type ViewMut<'view_ref>: ImgViewMut<Pixel = Self::Pixel>
     where
         Self: 'view_ref;
 
@@ -249,7 +249,7 @@ pub trait ImageViewMut: ImageView {
     #[inline]
     fn copy_from<I>(&mut self, view: &I)
     where
-        I: ImageView<Pixel = Self::Pixel>,
+        I: ImgView<Pixel = Self::Pixel>,
         Self::Pixel: Clone,
     {
         assert_eq!(self.dimensions(), view.dimensions());
@@ -265,7 +265,7 @@ pub trait ImageViewMut: ImageView {
     #[inline]
     fn swap_with<I>(&mut self, view: &mut I)
     where
-        I: ImageViewMut<Pixel = Self::Pixel>,
+        I: ImgViewMut<Pixel = Self::Pixel>,
     {
         assert_eq!(self.dimensions(), view.dimensions());
         self.pixels_mut()

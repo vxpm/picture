@@ -21,15 +21,15 @@ pub fn resample_horizontal<I, P, C, F, const N: usize>(
     width: Dimension,
     filter: F,
     window: f32,
-) -> ImageBuffer<P, Vec<P>>
+) -> ImgBuf<P, Vec<P>>
 where
-    I: ImageView<Pixel = P>,
+    I: ImgView<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
     C: Copy + ConvApprox<f32> + CastApprox<f32>,
     F: Fn(f32) -> f32,
 {
     if width == 0 {
-        return ImageBuffer::from_container(Vec::new(), width, view.height());
+        return ImgBuf::from_container(Vec::new(), width, view.height());
     }
 
     // create container for result
@@ -117,7 +117,7 @@ where
         container.set_len(size);
     }
 
-    ImageBuffer::from_container(container, width, view.height())
+    ImgBuf::from_container(container, width, view.height())
 }
 
 /// Resamples a view vertically to the given height using the given filter.
@@ -131,15 +131,15 @@ pub fn resample_vertical<I, P, C, F, const N: usize>(
     height: Dimension,
     filter: F,
     window: f32,
-) -> ImageBuffer<P, Vec<P>>
+) -> ImgBuf<P, Vec<P>>
 where
-    I: ImageView<Pixel = P>,
+    I: ImgView<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
     C: Copy + ConvApprox<f32> + CastApprox<f32>,
     F: Fn(f32) -> f32,
 {
     if height == 0 {
-        return ImageBuffer::from_container(Vec::new(), view.width(), height);
+        return ImgBuf::from_container(Vec::new(), view.width(), height);
     }
 
     // create container for result
@@ -227,7 +227,7 @@ where
         container.set_len(size);
     }
 
-    ImageBuffer::from_container(container, view.width(), height)
+    ImgBuf::from_container(container, view.width(), height)
 }
 
 /// Resamples a view to the given dimensions using the given filter. This is
@@ -241,9 +241,9 @@ pub fn resample<I, P, C, F, const N: usize>(
     (width, height): (Dimension, Dimension),
     filter: F,
     window: f32,
-) -> ImageBuffer<P, Vec<P>>
+) -> ImgBuf<P, Vec<P>>
 where
-    I: ImageView<Pixel = P>,
+    I: ImgView<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
     C: Copy + ConvApprox<f32> + CastApprox<f32>,
     F: Fn(f32) -> f32,
@@ -254,9 +254,9 @@ where
 
 /// Performs a box blur in a view and returns the result.
 #[must_use = "the blurred buffer is returned and the original view is left unmodified"]
-pub fn box_blur<I, P, C, const N: usize>(view: &I, strength: f32) -> ImageBuffer<P, Vec<P>>
+pub fn box_blur<I, P, C, const N: usize>(view: &I, strength: f32) -> ImgBuf<P, Vec<P>>
 where
-    I: ImageView<Pixel = P>,
+    I: ImgView<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
     C: Copy + ConvApprox<f32> + CastApprox<f32>,
 {
@@ -266,9 +266,9 @@ where
 
 /// Performs a gaussian blur in a view and returns the result.
 #[must_use = "the blurred buffer is returned and the original view is left unmodified"]
-pub fn gaussian_blur<I, P, C, const N: usize>(view: &I, strength: f32) -> ImageBuffer<P, Vec<P>>
+pub fn gaussian_blur<I, P, C, const N: usize>(view: &I, strength: f32) -> ImgBuf<P, Vec<P>>
 where
-    I: ImageView<Pixel = P>,
+    I: ImgView<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
     C: Copy + ConvApprox<f32> + CastApprox<f32>,
 {
@@ -299,9 +299,9 @@ pub fn resize<I, P, C, const N: usize>(
     view: &I,
     dimensions: (Dimension, Dimension),
     filter: ResizeFilter,
-) -> ImageBuffer<P, Vec<P>>
+) -> ImgBuf<P, Vec<P>>
 where
-    I: ImageView<Pixel = P>,
+    I: ImgView<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
     C: Copy + ConvApprox<f32> + CastApprox<f32>,
 {
@@ -319,7 +319,7 @@ where
 /// Flips the given view horizontally.
 pub fn flip_horizontal<I>(view: &mut I)
 where
-    I: ImageViewMut,
+    I: ImgViewMut,
 {
     for y in 0..view.height() {
         for x in 0..(view.width() / 2) {
@@ -341,7 +341,7 @@ where
 /// Flips the given view vertically.
 pub fn flip_vertical<I>(view: &mut I)
 where
-    I: ImageViewMut,
+    I: ImgViewMut,
 {
     for x in 0..view.width() {
         for y in 0..(view.height() / 2) {

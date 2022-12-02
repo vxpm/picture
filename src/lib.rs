@@ -9,8 +9,8 @@
 //!
 //! # Quick Start
 //! Take a look at the [`prelude`] for the most important items. Start with the [`Pixel`][prelude::Pixel],
-//! [`ImageView`][prelude::ImageView] and [`ImageViewMut`][prelude::ImageViewMut] traits. Then, the
-//! [`ImageBuffer`][prelude::ImageBuffer] type.
+//! [`ImgView`][prelude::ImgView] and [`ImgViewMut`][prelude::ImgViewMut] traits. Then, the
+//! [`ImgBuf`][prelude::ImgBuf] type.
 
 #[cfg(not(feature = "u64_dimensions"))]
 pub type Dimension = u32;
@@ -19,7 +19,7 @@ pub type Dimension = u64;
 
 pub type Point = (Dimension, Dimension);
 
-/// [`ImageBuffer`][buffer::ImageBuffer] and everything related to it.
+/// [`ImgBuf`][buffer::ImgBuf] and everything related to it.
 pub mod buffer;
 
 /// Modules related to common image formats.
@@ -32,22 +32,22 @@ pub mod pixel;
 pub mod processing;
 /// Overall utilities.
 pub mod util;
-/// [`ImageView`][view::ImageView] and [`ImageViewMut`][view::ImageViewMut] traits.
+/// [`ImgView`][view::ImgView] and [`ImgViewMut`][view::ImgViewMut] traits.
 pub mod view;
 /// Re-exports the most useful items of the crate.
 pub mod prelude {
     use super::*;
     pub use super::{Dimension, Point};
     pub use buffer::{
-        common::{Rgb16Image, Rgb8Image, Rgba16Image, Rgba8Image},
-        ImageBuffer,
+        common::{Rgb16Img, Rgb8Img, Rgba16Img, Rgba8Img},
+        ImgBuf,
     };
     pub use pixel::{
         common::{RGB, RGB16, RGB8, RGBA, RGBA16, RGBA8},
         Pixel,
     };
     pub use util::Rect;
-    pub use view::{ImageView, ImageViewMut};
+    pub use view::{ImgView, ImgViewMut};
 }
 
 #[cfg(test)]
