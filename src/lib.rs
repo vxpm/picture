@@ -32,7 +32,7 @@ pub mod pixel;
 pub mod processing;
 /// Overall utilities.
 pub mod util;
-/// [`ImgView`][view::ImgView] and [`ImgViewMut`][view::ImgViewMut] traits.
+/// [`ImgView`][view::ImgView] and [`ImgViewMut`][view::ImgViewMut] traits (+ extensions).
 pub mod view;
 /// Re-exports the most useful items of the crate.
 pub mod prelude {
