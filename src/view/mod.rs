@@ -304,6 +304,10 @@ pub trait BlockOps: ImgView {
             block_coords.1 * block_dimensions.1,
         );
 
+        if top_left.0 >= self.width() || top_left.1 >= self.height() {
+            return None;
+        }
+
         let width = if top_left.0 + block_dimensions.0 > self.width() {
             self.width() - top_left.0
         } else {
