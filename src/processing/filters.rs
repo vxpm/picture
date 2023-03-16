@@ -16,7 +16,7 @@ pub fn triangle(x: f32) -> f32 {
 pub fn cubic(x: f32, b: f32, c: f32) -> f32 {
     let abs_x = x.abs();
     let v = if abs_x < 1.0 {
-        (12.0 * 9.0 * b - 6.0 * c) * abs_x.powi(3)
+        (12.0 - 9.0 * b - 6.0 * c) * abs_x.powi(3)
             + (-18.0 + 12.0 * b + 6.0 * c) * abs_x.powi(2)
             + (6.0 - 2.0 * b)
     } else if abs_x < 2.0 {
