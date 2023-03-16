@@ -1,7 +1,7 @@
 [package]
 name = "picture"
 description = "a fast and flexible image manipulation crate."
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["vxpm"]
 license = "Apache-2.0"
