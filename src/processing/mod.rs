@@ -1,10 +1,43 @@
 use crate::prelude::*;
 use crate::util::{dimension_to_usize, index_point};
 use crate::Dimension;
-use easy_cast::{CastApprox, ConvApprox};
 
 /// Common sampling filters.
 pub mod filters;
+
+// TODO: maybe think of a better name?
+/// Trait for channel types that can be processed.
+pub trait Processable: Copy {
+    /// Converts this value to a [`f32`].
+    fn to_f32(self) -> f32;
+
+    /// Converts a [`f32`] into [`Self`].
+    ///
+    /// For numeric types, note that the value _will not_ necessarily be in the
+    /// valid range (e.g. it might be 258.2 for a [`u8`]). You should clamp the
+    /// value in these cases.
+    fn from_f32(value: f32) -> Self;
+}
+
+macro_rules! impl_processable {
+    ($($type:ty),*) => {
+        $(
+            impl Processable for $type {
+                #[inline(always)]
+                fn to_f32(self) -> f32 {
+                    self as f32
+                }
+
+                #[inline(always)]
+                fn from_f32(value: f32) -> Self {
+                    value.clamp(Self::MIN as f32, Self::MAX as f32) as Self
+                }
+            }
+        )*
+    };
+}
+
+impl_processable!(u8, u16, u32, u64, u128, i8, i16, i32, i64, i128, f32, f64, usize, isize);
 
 // useful resources:
 // - https://entropymine.com/imageworsener
@@ -25,7 +58,7 @@ pub fn resample_horizontal<I, P, C, F, const N: usize>(
 where
     I: ImgView<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
-    C: Copy + ConvApprox<f32> + CastApprox<f32>,
+    C: Processable,
     F: Fn(f32) -> f32,
 {
     if width == 0 {
@@ -91,14 +124,14 @@ where
                 weight_sum += weight;
 
                 for channel_index in 0..N {
-                    let value = weight * channels[channel_index].cast_approx();
+                    let value = weight * channels[channel_index].to_f32();
                     channel_value_sum[channel_index] += value;
                 }
             }
 
             let result: arrayvec::ArrayVec<_, N> = channel_value_sum
                 .into_iter()
-                .map(|v| C::conv_approx(v / weight_sum))
+                .map(|v| C::from_f32(v / weight_sum))
                 .collect();
 
             // SAFETY: this index will always be valid since target_x and target_y are always in
@@ -135,7 +168,7 @@ pub fn resample_vertical<I, P, C, F, const N: usize>(
 where
     I: ImgView<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
-    C: Copy + ConvApprox<f32> + CastApprox<f32>,
+    C: Processable,
     F: Fn(f32) -> f32,
 {
     if height == 0 {
@@ -201,14 +234,14 @@ where
                 weight_sum += weight;
 
                 for channel_index in 0..N {
-                    let value = weight * channels[channel_index].cast_approx();
+                    let value = weight * channels[channel_index].to_f32();
                     channel_value_sum[channel_index] += value;
                 }
             }
 
             let result: arrayvec::ArrayVec<_, N> = channel_value_sum
                 .into_iter()
-                .map(|v| C::conv_approx(v / weight_sum))
+                .map(|v| C::from_f32(v / weight_sum))
                 .collect();
 
             // SAFETY: this index will always be valid since target_x and target_y are always in
@@ -245,7 +278,7 @@ pub fn resample<I, P, C, F, const N: usize>(
 where
     I: ImgView<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
-    C: Copy + ConvApprox<f32> + CastApprox<f32>,
+    C: Processable,
     F: Fn(f32) -> f32,
 {
     let horizontal = resample_horizontal(view, width, &filter, window);
@@ -258,7 +291,7 @@ pub fn box_blur<I, P, C, const N: usize>(view: &I, strength: f32) -> ImgBuf<P, V
 where
     I: ImgView<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
-    C: Copy + ConvApprox<f32> + CastApprox<f32>,
+    C: Processable,
 {
     assert!(strength > 0.0);
     resample(view, view.dimensions(), filters::box_filter, strength)
@@ -270,7 +303,7 @@ pub fn gaussian_blur<I, P, C, const N: usize>(view: &I, strength: f32) -> ImgBuf
 where
     I: ImgView<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
-    C: Copy + ConvApprox<f32> + CastApprox<f32>,
+    C: Processable,
 {
     assert!(strength > 0.0);
     resample(
@@ -303,7 +336,7 @@ pub fn resize<I, P, C, const N: usize>(
 where
     I: ImgView<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
-    C: Copy + ConvApprox<f32> + CastApprox<f32>,
+    C: Processable,
 {
     match filter {
         ResizeFilter::Box => resample(view, dimensions, filters::box_filter, 0.0),
