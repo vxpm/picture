@@ -3,13 +3,11 @@ a fast and flexible image manipulation crate.
 
 # warning: wip
 this crate is still a WIP. while it's foundations are there (but not stable), it's still missing
-many convenience and quality of life features - mostly image processing (like resizing) and formats
-related.
+many convenience and quality of life features - mostly formats related.
 
 it's also in necessity of tests™ (there's _very_ few).
 
 # todo
-- add image processing utilities (resizing, filtering, etc...)
 - better & expanded image formats support (currently very half-baked and only supports png and qoi)
 - add way more tests
 - try to reduce usage of unsafe blocks
@@ -94,22 +92,26 @@ fn main() {
 ```
 (you can find this code in the [examples](examples/swap.rs) as well!)
 
-the `ImgViewMut` trait has many methods to obtain disjoint mutable views: `split_x_at_mut`, 
+the `ImgViewMut` trait has many methods to obtain disjoint mutable views: `split_x_at_mut`,
 `split_y_at_mut` and `view_mut_multiple`.
 
 # performance
-i've written a few [benchmarks](benches/picture_bench.rs) to compare `picture` and 
+i've written a few [benchmarks](benches/picture_bench.rs) to compare `picture` and
 [`image`](https://crates.io/crates/image), but i'm not experienced at writing these - so take these
-results with a grain of salt. benchmarks were executed on my ryzen 5 1600 with lto = "thin".
+results with a grain of salt. benchmarks were executed on my ryzen 5 1600 with `lto = "thin"`.
 
 | Benchmark                       | Time                            |
 | ------------------------------- | ------------------------------- |
-| Diff 256x256/Picture/           | [652.17 µs 655.06 µs 658.63 µs] |
-| Diff 256x256/Image/             | [933.05 µs 938.71 µs 944.43 µs] |
-| Fractal 256x256/Picture/        | [8.2990 ms 8.4081 ms 8.5218 ms] |
-| Fractal 256x256/Image/          | [21.815 ms 21.867 ms 21.922 ms] |
-| Match 16x16 in 256x256/Picture/ | [179.98 ms 180.64 ms 181.34 ms] |
-| Match 16x16 in 256x256/Image/   | [231.94 ms 233.09 ms 234.24 ms] |
+| Diff 256x256/Picture/           | [377.45 µs 379.36 µs 381.44 µs] |
+| Diff 256x256/Image/             | [735.66 µs 744.57 µs 753.50 µs] |
+| Fractal 256x256/Picture/        | [8.2667 ms 8.3979 ms 8.5334 ms] |
+| Fractal 256x256/Image/          | [9.0005 ms 9.1315 ms 9.2613 ms] |
+| Match 16x16 in 256x256/Picture/ | [183.25 ms 184.11 ms 185.00 ms] |
+| Match 16x16 in 256x256/Image/   | [188.99 ms 190.29 ms 191.65 ms] |
+| Lancoz Downsample/Picture/      | [54.864 ms 55.451 ms 56.069 ms] |
+| Lancoz Downsample/Image/        | [55.418 ms 56.024 ms 56.655 ms] |
+| Lancoz Upsample/Picture/        | [396.48 ms 401.48 ms 406.81 ms] |
+| Lancoz Upsample/Image/          | [861.12 ms 863.81 ms 866.49 ms] |
 
 you can try running these yourself with a simple `cargo bench`.
 
