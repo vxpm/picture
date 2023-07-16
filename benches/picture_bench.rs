@@ -1,6 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use image::GenericImageView;
 use picture::{
+    drawing::Drawing,
     formats::png::{PngDecoder, PngImage},
     prelude::*,
 };
@@ -253,9 +254,34 @@ fn lanczos_upsample(c: &mut Criterion) {
     group.finish();
 }
 
+fn line_drawing(c: &mut Criterion) {
+    let mut picture_img = Rgb8Img::new(1024, 1024);
+    let mut image_img = image::RgbImage::new(1024, 1024);
+
+    let mut group = c.benchmark_group("Line Drawing");
+    group.bench_function(BenchmarkId::new("Picture", ""), |b| {
+        b.iter(|| {
+            picture_img.draw_line(black_box((0, 0)), black_box((1023, 1023)), |_| {
+                RGB8::new(255, 255, 255)
+            })
+        })
+    });
+    group.bench_function(BenchmarkId::new("Image", ""), |b| {
+        b.iter(|| {
+            imageproc::drawing::draw_line_segment_mut(
+                &mut image_img,
+                black_box((0.0, 0.0)),
+                black_box((1023.0, 1023.0)),
+                image::Rgb([255, 255, 255]),
+            )
+        })
+    });
+    group.finish();
+}
+
 criterion_group! {
     name = benches;
     config = Criterion::default().warm_up_time(std::time::Duration::from_secs_f32(3.0)).measurement_time(std::time::Duration::from_secs_f32(15.0)).sample_size(50);
-    targets = diff, fractal, closest_match, lanczos_downsample, lanczos_upsample
+    targets = line_drawing, diff, fractal, closest_match, lanczos_downsample, lanczos_upsample
 }
 criterion_main!(benches);

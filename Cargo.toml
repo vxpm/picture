@@ -18,6 +18,7 @@ trybuild = "1"
 criterion = { version = '0.4' }
 num-complex = "0.4"
 image = { version = "0.24", features = ["png"] }
+imageproc = { version = "0.23" }
 
 [lib]
 bench = false

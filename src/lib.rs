@@ -26,6 +26,8 @@ pub mod buffer;
 #[cfg(feature = "formats")]
 pub mod formats;
 
+/// Primitives drawing.
+pub mod drawing;
 /// [`Pixel`][pixel::Pixel] trait and common pixel formats.
 pub mod pixel;
 /// Image processing, like resizing and blurring.
