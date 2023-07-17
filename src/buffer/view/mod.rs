@@ -2,7 +2,7 @@ use super::{Dimension, ImgBuf};
 use crate::{
     pixel::Pixel,
     util::{index_point, Rect},
-    view::{self, ImgView, ImgViewMut},
+    view::{self, Img, ImgCore, ImgMut, ImgMutCore},
     Point,
 };
 use std::{
@@ -55,18 +55,11 @@ where
     }
 }
 
-impl<'buffer_ref, P> ImgView for ImgBufView<'buffer_ref, P>
+impl<'buffer_ref, P> ImgCore for ImgBufView<'buffer_ref, P>
 where
     P: Pixel,
 {
     type Pixel = P;
-    type Pixels<'self_ref> = view::iter::Pixels<'self_ref, Self>
-    where
-        Self: 'self_ref;
-
-    type View<'self_ref> = Self
-    where
-        Self: 'self_ref;
 
     #[inline]
     fn width(&self) -> Dimension {
@@ -99,6 +92,19 @@ where
         // valid we are "borrowing" the buffer, and therefore no mutable reference to this pixel can exist.
         unsafe { ptr.add(index).as_ref().unwrap_unchecked() }
     }
+}
+
+impl<'buffer_ref, P> Img for ImgBufView<'buffer_ref, P>
+where
+    P: Pixel,
+{
+    type Pixels<'self_ref> = view::iter::Pixels<'self_ref, Self>
+    where
+        Self: 'self_ref;
+
+    type View<'self_ref> = Self
+    where
+        Self: 'self_ref;
 
     #[inline]
     fn pixels(&self) -> Self::Pixels<'_> {
@@ -125,7 +131,7 @@ where
 {
     type Item = &'view_ref P;
 
-    type IntoIter = <ImgBufView<'buffer_ref, P> as ImgView>::Pixels<'view_ref>;
+    type IntoIter = <ImgBufView<'buffer_ref, P> as Img>::Pixels<'view_ref>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.pixels()
@@ -190,18 +196,11 @@ where
     }
 }
 
-impl<'buffer_ref, P> ImgView for ImgBufViewMut<'buffer_ref, P>
+impl<'buffer_ref, P> ImgCore for ImgBufViewMut<'buffer_ref, P>
 where
     P: Pixel,
 {
     type Pixel = P;
-    type Pixels<'self_ref> = view::iter::Pixels<'self_ref, Self>
-    where
-        Self: 'self_ref;
-
-    type View<'self_ref> = ImgBufView<'self_ref, Self::Pixel>
-    where
-        Self: 'self_ref;
 
     #[inline]
     fn width(&self) -> Dimension {
@@ -236,6 +235,19 @@ where
         // pixels in this view.
         unsafe { ptr.add(index).as_ref().unwrap_unchecked() }
     }
+}
+
+impl<'buffer_ref, P> Img for ImgBufViewMut<'buffer_ref, P>
+where
+    P: Pixel,
+{
+    type Pixels<'self_ref> = view::iter::Pixels<'self_ref, Self>
+    where
+        Self: 'self_ref;
+
+    type View<'self_ref> = ImgBufView<'self_ref, Self::Pixel>
+    where
+        Self: 'self_ref;
 
     #[inline]
     fn pixels(&self) -> Self::Pixels<'_> {
@@ -256,18 +268,10 @@ where
     }
 }
 
-impl<'buffer_ref, P> ImgViewMut for ImgBufViewMut<'buffer_ref, P>
+impl<'buffer_ref, P> ImgMutCore for ImgBufViewMut<'buffer_ref, P>
 where
     P: Pixel,
 {
-    type PixelsMut<'self_ref> = iter::PixelsMut<'self_ref, Self::Pixel>
-    where
-        Self: 'self_ref;
-
-    type ViewMut<'self_ref> = ImgBufViewMut<'self_ref, Self::Pixel>
-    where
-        Self: 'self_ref;
-
     #[inline]
     unsafe fn pixel_mut_unchecked(&mut self, coords: Point) -> &mut Self::Pixel {
         debug_assert!(self.bounds.contains_relative(coords));
@@ -286,6 +290,19 @@ where
         // pixels in this view.
         unsafe { ptr.add(index).as_mut().unwrap_unchecked() }
     }
+}
+
+impl<'buffer_ref, P> ImgMut for ImgBufViewMut<'buffer_ref, P>
+where
+    P: Pixel,
+{
+    type PixelsMut<'self_ref> = iter::PixelsMut<'self_ref, Self::Pixel>
+    where
+        Self: 'self_ref;
+
+    type ViewMut<'self_ref> = ImgBufViewMut<'self_ref, Self::Pixel>
+    where
+        Self: 'self_ref;
 
     #[inline]
     fn pixels_mut(&mut self) -> Self::PixelsMut<'_> {
@@ -385,7 +402,7 @@ where
 {
     type Item = &'view_ref P;
 
-    type IntoIter = <ImgBufViewMut<'buffer_ref, P> as ImgView>::Pixels<'view_ref>;
+    type IntoIter = <ImgBufViewMut<'buffer_ref, P> as Img>::Pixels<'view_ref>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.pixels()
@@ -398,7 +415,7 @@ where
 {
     type Item = &'view_ref mut P;
 
-    type IntoIter = <ImgBufViewMut<'buffer_ref, P> as ImgViewMut>::PixelsMut<'view_ref>;
+    type IntoIter = <ImgBufViewMut<'buffer_ref, P> as ImgMut>::PixelsMut<'view_ref>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.pixels_mut()

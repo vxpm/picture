@@ -1,6 +1,7 @@
 use crate::{
-    prelude::{Dimension, ImgBuf, ImgView, Pixel, Rgb8Img, Rgba8Img},
+    prelude::{Dimension, ImgBuf, Pixel, Rgb8Img, Rgba8Img},
     util::{dimension_to_u32, dimension_to_usize, Array},
+    view::Img,
 };
 use either::Either;
 use rgb::{RGB8, RGBA8};
@@ -77,8 +78,7 @@ impl Default for QoiEncoder {
 impl QoiEncoder {
     pub fn encode<I>(self, view: I) -> Result<Vec<u8>, QoiError>
     where
-        I: ImgView,
-        I::Pixel: Pixel,
+        I: Img,
     {
         let mut buffer: Vec<u8> = Vec::with_capacity(
             dimension_to_usize(view.size()) * <<I::Pixel as Pixel>::Channels as Array>::SIZE,

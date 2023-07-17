@@ -7,7 +7,7 @@ use std::io::Write;
 // error diffusion dithering
 fn dither<I1>(img: &mut I1)
 where
-    I1: ImgViewMut<Pixel = RGB8>,
+    I1: ImgMut<Pixel = RGB8>,
 {
     const BLACK: RGB8 = RGB8::new(0, 0, 0);
     const WHITE: RGB8 = RGB8::new(255, 255, 255);

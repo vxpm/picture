@@ -8,7 +8,7 @@ pub mod view;
 use crate::{
     pixel::Pixel,
     util::{dimension_to_usize, index_point, macros::debug_assertions, Rect},
-    view::{ImgView, ImgViewMut},
+    view::{Img, ImgCore, ImgMut, ImgMutCore},
     Dimension, Point,
 };
 use std::{
@@ -199,21 +199,12 @@ where
     }
 }
 
-impl<P, C> ImgView for ImgBuf<P, C>
+impl<P, C> ImgCore for ImgBuf<P, C>
 where
     P: Pixel,
     C: Deref<Target = [P]>,
 {
     type Pixel = P;
-    type Pixels<'buffer_ref> = iter::Pixels<'buffer_ref, Self::Pixel>
-    where
-        Self: 'buffer_ref;
-
-    type View<'buffer_ref> = ImgBufView<'buffer_ref, Self::Pixel>
-    where
-        Self::Pixel: 'buffer_ref,
-        C: 'buffer_ref;
-
     #[inline]
     fn width(&self) -> Dimension {
         self.width
@@ -241,6 +232,21 @@ where
             off => self.data.get_unchecked(index_point(coords, self.width))
         }
     }
+}
+
+impl<P, C> Img for ImgBuf<P, C>
+where
+    P: Pixel,
+    C: Deref<Target = [P]>,
+{
+    type Pixels<'buffer_ref> = iter::Pixels<'buffer_ref, Self::Pixel>
+    where
+        Self: 'buffer_ref;
+
+    type View<'buffer_ref> = ImgBufView<'buffer_ref, Self::Pixel>
+    where
+        Self::Pixel: 'buffer_ref,
+        C: 'buffer_ref;
 
     #[inline]
     fn pixels(&self) -> Self::Pixels<'_> {
@@ -254,19 +260,11 @@ where
     }
 }
 
-impl<P, C> ImgViewMut for ImgBuf<P, C>
+impl<P, C> ImgMutCore for ImgBuf<P, C>
 where
     P: Pixel,
     C: DerefMut<Target = [P]>,
 {
-    type PixelsMut<'buffer_ref> = iter::PixelsMut<'buffer_ref, Self::Pixel>
-    where
-        Self: 'buffer_ref;
-
-    type ViewMut<'buffer_ref> = ImgBufViewMut<'buffer_ref, Self::Pixel>
-    where
-        Self::Pixel: 'buffer_ref, C: 'buffer_ref;
-
     #[inline]
     fn pixel_mut(&mut self, coords: Point) -> Option<&mut Self::Pixel> {
         self.data.get_mut(index_point(coords, self.width))
@@ -279,6 +277,20 @@ where
             off => self.data.get_unchecked_mut(index_point(coords, self.width))
         }
     }
+}
+
+impl<P, C> ImgMut for ImgBuf<P, C>
+where
+    P: Pixel,
+    C: DerefMut<Target = [P]>,
+{
+    type PixelsMut<'buffer_ref> = iter::PixelsMut<'buffer_ref, Self::Pixel>
+    where
+        Self: 'buffer_ref;
+
+    type ViewMut<'buffer_ref> = ImgBufViewMut<'buffer_ref, Self::Pixel>
+    where
+        Self::Pixel: 'buffer_ref, C: 'buffer_ref;
 
     #[inline]
     fn pixels_mut(&mut self) -> Self::PixelsMut<'_> {
@@ -367,8 +379,7 @@ where
     C: Deref<Target = [P]>,
 {
     type Item = &'view_ref P;
-
-    type IntoIter = <ImgBuf<P, C> as ImgView>::Pixels<'view_ref>;
+    type IntoIter = <ImgBuf<P, C> as Img>::Pixels<'view_ref>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.pixels()
@@ -382,7 +393,7 @@ where
 {
     type Item = &'view_ref mut P;
 
-    type IntoIter = <ImgBuf<P, C> as ImgViewMut>::PixelsMut<'view_ref>;
+    type IntoIter = <ImgBuf<P, C> as ImgMut>::PixelsMut<'view_ref>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.pixels_mut()

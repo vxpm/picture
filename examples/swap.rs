@@ -8,8 +8,8 @@ use std::io::Write;
 // reimplemented here for demonstration purposes
 fn swap<I1, I2, P>(a: &mut I1, b: &mut I2)
 where
-    I1: ImgViewMut<Pixel = P>,
-    I2: ImgViewMut<Pixel = P>,
+    I1: ImgMut<Pixel = P>,
+    I2: ImgMut<Pixel = P>,
 {
     assert!(a.dimensions() == b.dimensions());
     a.pixels_mut()

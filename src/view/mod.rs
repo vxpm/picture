@@ -15,59 +15,16 @@ use crate::{
 // ImgView    -> ImgBuf, ImgBufView, ImgBufViewMut
 // ImgViewMut -> ImgBuf, ImgBufViewMut
 
-/// Trait for types that can be treated as a view into some image.
-pub trait ImgView {
-    /// The pixel type of this view.
-    type Pixel: Pixel;
-
+pub trait Img: ImgCore {
     /// The type of the iterator through pixels of this view.
     type Pixels<'view_ref>: Iterator<Item = &'view_ref Self::Pixel>
     where
         Self: 'view_ref;
 
     /// The view type the `view` method returns.
-    type View<'view_ref>: ImgView<Pixel = Self::Pixel>
+    type View<'view_ref>: Img<Pixel = Self::Pixel>
     where
         Self: 'view_ref;
-
-    /// The width of this view.
-    fn width(&self) -> Dimension;
-    /// The height of this view.
-    fn height(&self) -> Dimension;
-
-    /// The size, in pixels, of this view. Equivalent to `width * height`.
-    #[inline]
-    fn size(&self) -> Dimension {
-        self.width() * self.height()
-    }
-
-    /// The dimensions of this view. Equivalent to `(width, height)`.
-    #[inline]
-    fn dimensions(&self) -> (Dimension, Dimension) {
-        (self.width(), self.height())
-    }
-
-    /// Returns a [`Rect`] with top-left point `(0, 0)` and dimensions `self.dimensions()`.
-    #[inline]
-    fn bounds(&self) -> Rect {
-        Rect::new((0, 0), self.dimensions())
-    }
-
-    /// Returns a reference to the pixel with coordinates `(x, y)` relative to this view. If the coordinates
-    /// aren't within the bounds of this view, returns `None`.
-    #[inline]
-    fn pixel(&self, coords: Point) -> Option<&Self::Pixel> {
-        self.bounds()
-            .contains_relative(coords)
-            // SAFETY: safe because the pixel is checked to be in bounds
-            .then(|| unsafe { self.pixel_unchecked(coords) })
-    }
-
-    /// Returns a reference to the pixel with coordinates `(x, y)` relative to this view, without checking.
-    ///
-    /// # Safety
-    /// The coordinate must be in the bounds of the view.
-    unsafe fn pixel_unchecked(&self, coords: Point) -> &Self::Pixel;
 
     /// Returns an iterator over the pixels of this view.
     fn pixels(&self) -> Self::Pixels<'_>;
@@ -153,6 +110,51 @@ pub trait ImgView {
 
         Ok(())
     }
+}
+
+/// Trait for types that can be treated as a view into some image.
+pub trait ImgCore {
+    /// The pixel type of this view.
+    type Pixel: Pixel;
+
+    /// The width of this view.
+    fn width(&self) -> Dimension;
+    /// The height of this view.
+    fn height(&self) -> Dimension;
+
+    /// The size, in pixels, of this view. Equivalent to `width * height`.
+    #[inline]
+    fn size(&self) -> Dimension {
+        self.width() * self.height()
+    }
+
+    /// The dimensions of this view. Equivalent to `(width, height)`.
+    #[inline]
+    fn dimensions(&self) -> (Dimension, Dimension) {
+        (self.width(), self.height())
+    }
+
+    /// Returns a [`Rect`] with top-left point `(0, 0)` and dimensions `self.dimensions()`.
+    #[inline]
+    fn bounds(&self) -> Rect {
+        Rect::new((0, 0), self.dimensions())
+    }
+
+    /// Returns a reference to the pixel with coordinates `(x, y)` relative to this view. If the coordinates
+    /// aren't within the bounds of this view, returns `None`.
+    #[inline]
+    fn pixel(&self, coords: Point) -> Option<&Self::Pixel> {
+        self.bounds()
+            .contains_relative(coords)
+            // SAFETY: safe because the pixel is checked to be in bounds
+            .then(|| unsafe { self.pixel_unchecked(coords) })
+    }
+
+    /// Returns a reference to the pixel with coordinates `(x, y)` relative to this view, without checking.
+    ///
+    /// # Safety
+    /// The coordinate must be in the bounds of the view.
+    unsafe fn pixel_unchecked(&self, coords: Point) -> &Self::Pixel;
 
     /// Creates an [`ImgBuf`] from this view with [`Vec`] as it's container.
     #[inline]
@@ -168,18 +170,7 @@ pub trait ImgView {
     }
 }
 
-/// Trait for types that can be treated as a mutable view into some image.
-pub trait ImgViewMut: ImgView {
-    /// The type of the iterator through mutable pixels of this view.
-    type PixelsMut<'view_ref>: Iterator<Item = &'view_ref mut Self::Pixel>
-    where
-        Self: 'view_ref;
-
-    /// The mutable view type the `view_mut` method returns.
-    type ViewMut<'view_ref>: ImgViewMut<Pixel = Self::Pixel>
-    where
-        Self: 'view_ref;
-
+pub trait ImgMutCore: ImgCore {
     /// Returns a mutable reference to the pixel with coordinates `(x, y)` relative to this view. If the
     /// coordinates aren't within the bounds of this view, returns `None`.
     #[inline]
@@ -196,6 +187,19 @@ pub trait ImgViewMut: ImgView {
     /// # Safety
     /// The coordinate must be in the bounds of the view.
     unsafe fn pixel_mut_unchecked(&mut self, coords: Point) -> &mut Self::Pixel;
+}
+
+/// Trait for types that can be treated as a mutable view into some image.
+pub trait ImgMut: Img + ImgMutCore {
+    /// The type of the iterator through mutable pixels of this view.
+    type PixelsMut<'view_ref>: Iterator<Item = &'view_ref mut Self::Pixel>
+    where
+        Self: 'view_ref;
+
+    /// The mutable view type the `view_mut` method returns.
+    type ViewMut<'view_ref>: ImgMut<Pixel = Self::Pixel>
+    where
+        Self: 'view_ref;
 
     /// Returns a mutable iterator over the pixels of this view.
     fn pixels_mut(&mut self) -> Self::PixelsMut<'_>;
@@ -259,7 +263,7 @@ pub trait ImgViewMut: ImgView {
     #[inline]
     fn copy_from<I>(&mut self, view: &I)
     where
-        I: ImgView<Pixel = Self::Pixel>,
+        I: Img<Pixel = Self::Pixel>,
         Self::Pixel: Clone,
     {
         assert_eq!(self.dimensions(), view.dimensions());
@@ -275,7 +279,7 @@ pub trait ImgViewMut: ImgView {
     #[inline]
     fn swap_with<I>(&mut self, view: &mut I)
     where
-        I: ImgViewMut<Pixel = Self::Pixel>,
+        I: ImgMut<Pixel = Self::Pixel>,
     {
         assert_eq!(self.dimensions(), view.dimensions());
         self.pixels_mut()
@@ -291,7 +295,7 @@ pub trait ImgViewMut: ImgView {
 /// of the view. A block is simply one of those tiles.
 /// Note that some blocks might be smaller than `block_dimensions` due to the dimensions of the
 /// view not being exactly divisible by it.
-pub trait BlockOps: ImgView {
+pub trait BlockOps: Img {
     /// Returns a block view into this view. If the block isn't contained in this view, returns `None`.
     /// Note that `block_coords` is in block coordinates.
     fn block(
@@ -354,12 +358,12 @@ pub trait BlockOps: ImgView {
     }
 }
 
-impl<I> BlockOps for I where I: ImgView {}
+impl<I> BlockOps for I where I: Img {}
 
 /// Trait that extends [`ImgViewMut`] with mutable block-related methods.
 ///
 /// See [`BlockOps`] for more information.
-pub trait BlockOpsMut: BlockOps + ImgViewMut {
+pub trait BlockOpsMut: BlockOps + ImgMut {
     /// Returns a mutable block view into this view. If the block isn't contained in this view, returns `None`.
     /// Note that `block_coords` is in block coordinates.
     fn block_mut(
@@ -388,4 +392,4 @@ pub trait BlockOpsMut: BlockOps + ImgViewMut {
     }
 }
 
-impl<I> BlockOpsMut for I where I: ImgViewMut {}
+impl<I> BlockOpsMut for I where I: ImgMut {}

@@ -47,7 +47,7 @@ pub mod prelude {
         Pixel,
     };
     pub use util::Rect;
-    pub use view::{ImgView, ImgViewMut};
+    pub use view::{Img, ImgCore, ImgMut, ImgMutCore};
 }
 
 #[cfg(test)]

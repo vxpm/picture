@@ -145,7 +145,7 @@ unsafe impl<'buffer_ref, P> TrustedLen for PixelsMut<'buffer_ref, P> where P: Pi
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::*;
+    use crate::{prelude::*, view::ImgCore};
     use proptest::prelude::*;
 
     proptest! {
