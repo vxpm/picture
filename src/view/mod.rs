@@ -1,3 +1,4 @@
+pub mod erased;
 /// Default iterator types.
 pub mod iter;
 
@@ -75,9 +76,9 @@ pub trait ImgCore {
     }
 }
 
-/// A supertrait of [`ImgCore`] that adds functionality dependent on
-/// associated types. Unlike [`ImgCore`], it's not object safe. For
-/// the object-safe counterpart of this trait, see [`ImgObj`]
+/// A subtrait of [`ImgCore`] that adds functionality dependent on
+/// associated types. Unlike [`ImgCore`], it's not object-safe. For
+/// the object-safe counterpart of this trait, see [`ErasedImg`]
 pub trait Img: ImgCore {
     /// The type of the iterator through pixels of this view.
     type Pixels<'view_ref>: Iterator<Item = &'view_ref Self::Pixel>
@@ -172,120 +173,6 @@ pub trait Img: ImgCore {
         }
 
         Ok(())
-    }
-}
-
-/// A supertrait of [`ImgCore`] that adds the same functionality as [`Img`],
-/// but in an object-safe manner.
-pub trait ImgObj: ImgCore {
-    /// Returns an iterator over the pixels of this view.
-    fn pixels_boxed<'self_ref>(
-        &'self_ref self,
-    ) -> Box<dyn Iterator<Item = &<Self as ImgCore>::Pixel> + 'self_ref>;
-
-    /// Returns a view into this view. If the bounds don't fit in this view, returns `None`.
-    #[inline]
-    fn view_boxed<'self_ref>(
-        &'self_ref self,
-        bounds: Rect,
-    ) -> Option<Box<dyn ImgObj<Pixel = <Self as ImgCore>::Pixel> + 'self_ref>> {
-        self.bounds()
-            .contains_rect(&bounds)
-            // SAFETY: safe because 'bounds' is checked to be contained within the view.
-            .then(|| unsafe { self.view_unchecked_boxed(bounds) })
-    }
-
-    /// Returns a view into this view, without checking bounds.
-    ///
-    /// # Safety
-    /// The bounds must fit in this view.
-    unsafe fn view_unchecked_boxed<'self_ref>(
-        &'self_ref self,
-        bounds: Rect,
-    ) -> Box<dyn ImgObj<Pixel = <Self as ImgCore>::Pixel> + 'self_ref>;
-
-    /// Returns multiple views into this view. If any of the bounds don't fit in this view, returns `None`.
-    fn view_multiple_boxed<'self_ref>(
-        &'self_ref self,
-        bounds: &[Rect],
-    ) -> Option<Vec<Box<dyn ImgObj<Pixel = <Self as ImgCore>::Pixel> + 'self_ref>>> {
-        bounds.into_iter().map(|b| self.view_boxed(*b)).collect()
-    }
-
-    /// Returns multiple views into this view, without checking bounds.
-    ///
-    /// # Safety
-    /// All bounds must fit in this view.
-    unsafe fn view_multiple_unchecked_boxed<'self_ref>(
-        &'self_ref self,
-        bounds: &[Rect],
-    ) -> Vec<Box<dyn ImgObj<Pixel = <Self as ImgCore>::Pixel> + 'self_ref>> {
-        bounds
-            .into_iter()
-            // SAFETY: we trust the caller!
-            .map(|b| unsafe { self.view_unchecked_boxed(*b) })
-            .collect()
-    }
-
-    /// Splits this view into two disjoint views, separated at the given x coordinate.
-    #[inline]
-    fn split_x_at_boxed<'self_ref>(
-        &'self_ref self,
-        mid: Dimension,
-    ) -> Option<(
-        Box<dyn ImgObj<Pixel = <Self as ImgCore>::Pixel> + 'self_ref>,
-        Box<dyn ImgObj<Pixel = <Self as ImgCore>::Pixel> + 'self_ref>,
-    )> {
-        let left_bounds = Rect::new((0, 0), (mid, self.height()));
-        let right_bounds = Rect::new((mid, 0), (self.width() - mid, self.height()));
-
-        self.view_boxed(left_bounds)
-            .and_then(|left| self.view_boxed(right_bounds).map(|right| (left, right)))
-    }
-
-    /// Splits this view into two disjoint views, separated at the given y coordinate.
-    #[inline]
-    fn split_y_at_boxed<'self_ref>(
-        &'self_ref self,
-        mid: Dimension,
-    ) -> Option<(
-        Box<dyn ImgObj<Pixel = <Self as ImgCore>::Pixel> + 'self_ref>,
-        Box<dyn ImgObj<Pixel = <Self as ImgCore>::Pixel> + 'self_ref>,
-    )> {
-        let upper_bounds = Rect::new((0, 0), (self.width(), mid));
-        let lower_bounds = Rect::new((0, mid), (self.width(), self.height() - mid));
-
-        self.view_boxed(upper_bounds)
-            .and_then(|upper| self.view_boxed(lower_bounds).map(|lower| (upper, lower)))
-    }
-
-    /// Writes the data of each pixel to a [writer][std::io::Write] in a row-major (top-left to bottom-right)
-    /// order.
-    #[inline]
-    fn write_data(&self, mut writer: &mut dyn std::io::Write) -> std::io::Result<()> {
-        for pixel in self.pixels_boxed() {
-            pixel.write_data(&mut writer)?;
-        }
-
-        Ok(())
-    }
-}
-
-impl<T> ImgObj for T
-where
-    T: Img,
-{
-    fn pixels_boxed<'self_ref>(
-        &'self_ref self,
-    ) -> Box<dyn Iterator<Item = &'self_ref <Self as ImgCore>::Pixel> + 'self_ref> {
-        Box::new(self.pixels())
-    }
-
-    unsafe fn view_unchecked_boxed<'self_ref>(
-        &'self_ref self,
-        bounds: Rect,
-    ) -> Box<dyn ImgObj<Pixel = <Self as ImgCore>::Pixel> + 'self_ref> {
-        Box::new(self.view_unchecked(bounds))
     }
 }
 
