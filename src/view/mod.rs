@@ -10,14 +10,6 @@ use crate::{
     Point,
 };
 
-// types: ImgBuf, ImgBufView, ImgBufViewMut
-//
-// Trait       | Implemented for...
-// ImgCore    -> ImgBuf, ImgBufView, ImgBufViewMut
-// Img        -> Same as above
-// ImgMutCore -> ImgBuf, ImgBufViewMut
-// ImgMut     -> Same as above
-
 /// Trait for types that can be treated as a view into some image.
 pub trait ImgCore {
     /// The pixel type of this view.

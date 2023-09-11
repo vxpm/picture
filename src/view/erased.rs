@@ -1,4 +1,4 @@
-use super::{Img, ImgCore};
+use super::{Img, ImgCore, ImgMutCore};
 use crate::{pixel::Pixel, prelude::Dimension, util::Rect, Point};
 
 /// A subtrait of [`ImgCore`] that adds the same functionality as [`Img`],
@@ -175,5 +175,24 @@ where
 
     unsafe fn view_unchecked(&self, bounds: Rect) -> Self::View<'_> {
         self.view_unchecked_erased(bounds)
+    }
+}
+
+pub trait ErasedImgMut: ErasedImg + ImgMutCore {
+    /// Returns a mutable iterator over the pixels of this view.
+    fn erased_pixels_mut<'view_ref>(
+        &'view_ref mut self,
+    ) -> Box<dyn Iterator<Item = &<Self as ImgCore>::Pixel> + 'view_ref>;
+
+    /// Returns a mutable view into this view. If the bounds don't fit in this view, returns `None`.
+    #[inline]
+    fn view_mut_erased<'view_ref>(
+        &'view_ref self,
+        bounds: Rect,
+    ) -> Option<Box<dyn ErasedImgMut<Pixel = <Self as ImgCore>::Pixel> + 'view_ref>> {
+        self.bounds()
+            .contains_rect(&bounds)
+            // SAFETY: safe because 'bounds' is checked to be contained within the view.
+            .then(|| unsafe { self.view_mut_unchecked_erased(bounds) })
     }
 }
