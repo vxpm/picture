@@ -187,7 +187,7 @@ pub trait ErasedImgMut: ErasedImg + ImgMutCore {
     /// Returns a mutable view into this view. If the bounds don't fit in this view, returns `None`.
     #[inline]
     fn view_mut_erased<'view_ref>(
-        &'view_ref self,
+        &'view_ref mut self,
         bounds: Rect,
     ) -> Option<Box<dyn ErasedImgMut<Pixel = <Self as ImgCore>::Pixel> + 'view_ref>> {
         self.bounds()
@@ -195,4 +195,44 @@ pub trait ErasedImgMut: ErasedImg + ImgMutCore {
             // SAFETY: safe because 'bounds' is checked to be contained within the view.
             .then(|| unsafe { self.view_mut_unchecked_erased(bounds) })
     }
+
+    /// Returns a mutable view into this view, without checking.
+    ///
+    /// # Safety
+    /// The bounds must fit in this view.
+    unsafe fn view_mut_unchecked_erased<'view_ref>(
+        &'view_ref mut self,
+        bounds: Rect,
+    ) -> Box<dyn ErasedImgMut<Pixel = <Self as ImgCore>::Pixel> + 'view_ref>;
+
+    /// Returns multiple mutable views into this view. If any of the bounds don't fit in this view or
+    /// overlap, returns `None`.
+    fn view_mut_multiple<'view_ref>(
+        &'view_ref mut self,
+        bounds: &[Rect],
+    ) -> Option<Vec<Box<dyn ErasedImgMut<Pixel = <Self as ImgCore>::Pixel> + 'view_ref>>> {
+        for (index, bound_a) in bounds.iter().enumerate() {
+            if !self.bounds().contains_rect(bound_a) {
+                return None;
+            }
+
+            for bound_b in &bounds[index + 1..] {
+                if bound_a.overlaps(bound_b) {
+                    return None;
+                }
+            }
+        }
+
+        // SAFETY: bounds have been checked
+        Some(unsafe { self.view_mut_multiple_unchecked_erased(bounds) })
+    }
+
+    /// Returns multiple mutable views into this view, without checking bounds and overlaps.
+    ///
+    /// # Safety
+    /// All bounds must fit in this view and not overlap with each other.
+    unsafe fn view_mut_multiple_unchecked_erased<'view_ref>(
+        &'view_ref mut self,
+        bounds: &[Rect],
+    ) -> Vec<Box<dyn ErasedImgMut<Pixel = <Self as ImgCore>::Pixel> + 'view_ref>>;
 }
