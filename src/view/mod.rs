@@ -4,7 +4,6 @@ pub mod iter;
 use crate::{
     buffer::ImgBuf,
     pixel::Pixel,
-    prelude::Dimension,
     util::{macros::div_ceil, Rect},
     Point,
 };
@@ -31,19 +30,19 @@ pub trait ImgView {
         Self: 'view_ref;
 
     /// The width of this view.
-    fn width(&self) -> Dimension;
+    fn width(&self) -> u32;
     /// The height of this view.
-    fn height(&self) -> Dimension;
+    fn height(&self) -> u32;
 
     /// The size, in pixels, of this view. Equivalent to `width * height`.
     #[inline]
-    fn size(&self) -> Dimension {
-        self.width() * self.height()
+    fn size(&self) -> usize {
+        self.width() as usize * self.height() as usize
     }
 
     /// The dimensions of this view. Equivalent to `(width, height)`.
     #[inline]
-    fn dimensions(&self) -> (Dimension, Dimension) {
+    fn dimensions(&self) -> (u32, u32) {
         (self.width(), self.height())
     }
 
@@ -122,7 +121,7 @@ pub trait ImgView {
 
     /// Splits this view into two disjoint views, separated at the given x coordinate.
     #[inline]
-    fn split_x_at(&self, mid: Dimension) -> Option<(Self::View<'_>, Self::View<'_>)> {
+    fn split_x_at(&self, mid: u32) -> Option<(Self::View<'_>, Self::View<'_>)> {
         let left_bounds = Rect::new((0, 0), (mid, self.height()));
         let right_bounds = Rect::new((mid, 0), (self.width() - mid, self.height()));
 
@@ -132,7 +131,7 @@ pub trait ImgView {
 
     /// Splits this view into two disjoint views, separated at the given y coordinate.
     #[inline]
-    fn split_y_at(&self, mid: Dimension) -> Option<(Self::View<'_>, Self::View<'_>)> {
+    fn split_y_at(&self, mid: u32) -> Option<(Self::View<'_>, Self::View<'_>)> {
         let upper_bounds = Rect::new((0, 0), (self.width(), mid));
         let lower_bounds = Rect::new((0, mid), (self.width(), self.height() - mid));
 
@@ -247,10 +246,10 @@ pub trait ImgViewMut: ImgView {
     ) -> [Self::ViewMut<'_>; N];
 
     /// Splits this mutable view into two disjoint mutable views, separated at the given x coordinate.
-    fn split_x_at_mut(&mut self, mid: Dimension) -> Option<(Self::ViewMut<'_>, Self::ViewMut<'_>)>;
+    fn split_x_at_mut(&mut self, mid: u32) -> Option<(Self::ViewMut<'_>, Self::ViewMut<'_>)>;
 
     /// Splits this mutable view into two disjoint mutable views, separated at the given y coordinate.
-    fn split_y_at_mut(&mut self, mid: Dimension) -> Option<(Self::ViewMut<'_>, Self::ViewMut<'_>)>;
+    fn split_y_at_mut(&mut self, mid: u32) -> Option<(Self::ViewMut<'_>, Self::ViewMut<'_>)>;
 
     /// Copies a view into this one.
     ///
@@ -294,11 +293,7 @@ pub trait ImgViewMut: ImgView {
 pub trait BlockOps: ImgView {
     /// Returns a block view into this view. If the block isn't contained in this view, returns `None`.
     /// Note that `block_coords` is in block coordinates.
-    fn block(
-        &self,
-        block_coords: Point,
-        block_dimensions: (Dimension, Dimension),
-    ) -> Option<Self::View<'_>> {
+    fn block(&self, block_coords: Point, block_dimensions: (u32, u32)) -> Option<Self::View<'_>> {
         let top_left = (
             block_coords.0 * block_dimensions.0,
             block_coords.1 * block_dimensions.1,
@@ -325,22 +320,19 @@ pub trait BlockOps: ImgView {
 
     /// The width, in blocks, of this view.
     #[inline]
-    fn width_in_blocks(&self, block_width: Dimension) -> Dimension {
+    fn width_in_blocks(&self, block_width: u32) -> u32 {
         div_ceil!(self.width(), block_width)
     }
 
     /// The height, in blocks, of this view.
     #[inline]
-    fn height_in_blocks(&self, block_height: Dimension) -> Dimension {
+    fn height_in_blocks(&self, block_height: u32) -> u32 {
         div_ceil!(self.height(), block_height)
     }
 
     /// The dimensions, in blocks, of this view. Equivalent to `(width_in_blocks, height_in_blocks)`.
     #[inline]
-    fn dimensions_in_blocks(
-        &self,
-        block_dimensions: (Dimension, Dimension),
-    ) -> (Dimension, Dimension) {
+    fn dimensions_in_blocks(&self, block_dimensions: (u32, u32)) -> (u32, u32) {
         (
             self.width_in_blocks(block_dimensions.0),
             self.height_in_blocks(block_dimensions.1),
@@ -349,7 +341,7 @@ pub trait BlockOps: ImgView {
 
     /// The size, in blocks, of this view. Equivalent to `width_in_blocks * height_in_blocks`.
     #[inline]
-    fn size_in_blocks(&self, block_dimensions: (Dimension, Dimension)) -> Dimension {
+    fn size_in_blocks(&self, block_dimensions: (u32, u32)) -> u32 {
         self.width_in_blocks(block_dimensions.0) * self.height_in_blocks(block_dimensions.1)
     }
 }
@@ -365,7 +357,7 @@ pub trait BlockOpsMut: BlockOps + ImgViewMut {
     fn block_mut(
         &mut self,
         block_coords: Point,
-        block_dimensions: (Dimension, Dimension),
+        block_dimensions: (u32, u32),
     ) -> Option<Self::ViewMut<'_>> {
         let top_left = (
             block_coords.0 * block_dimensions.0,

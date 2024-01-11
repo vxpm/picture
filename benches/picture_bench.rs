@@ -6,7 +6,7 @@ use picture::{
 };
 
 #[inline]
-fn picture_fractal((width, height): (Dimension, Dimension)) -> Rgb8Img {
+fn picture_fractal((width, height): (u32, u32)) -> Rgb8Img {
     let mut img = Rgb8Img::new(width, height);
 
     let scalex = 3.0 / width as f32;

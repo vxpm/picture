@@ -1,10 +1,6 @@
 use super::ImgBufViewMut;
-use crate::{
-    pixel::Pixel,
-    prelude::Rect,
-    util::{dimension_to_usize, index_point},
-    Dimension, Point,
-};
+use crate::{pixel::Pixel, prelude::Rect, util::index_point, Point};
+
 #[cfg(feature = "unstable")]
 use std::iter::TrustedLen;
 use std::{iter::FusedIterator, marker::PhantomData, ptr::NonNull};
@@ -13,10 +9,10 @@ use std::{iter::FusedIterator, marker::PhantomData, ptr::NonNull};
 #[derive(Debug, Clone)]
 pub struct PixelsWithCoordsMut<'buffer_ref, P> {
     ptr: NonNull<P>,
-    buffer_width: Dimension,
+    buffer_width: u32,
     bounds: Rect,
-    current_x: Dimension,
-    current_y: Dimension,
+    current_x: u32,
+    current_y: u32,
     _phantom: PhantomData<&'buffer_ref mut [P]>,
 }
 
@@ -69,13 +65,11 @@ where
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let total_size = dimension_to_usize(self.bounds.len());
+        let total_size = self.bounds.len();
         let current_size = total_size
-            .checked_sub(index_point(
-                (self.current_x, self.current_y),
-                self.buffer_width,
-            ))
-            .expect("size shouldn't underflow");
+            .checked_sub(index_point((self.current_x, self.current_y), self.buffer_width) as u64)
+            .expect("size shouldn't underflow") as usize;
+
         (current_size, Some(current_size))
     }
 
@@ -83,7 +77,7 @@ where
     #[cfg(feature = "unstable")]
     fn advance_by(&mut self, n: usize) -> Result<(), usize> {
         self.current_x +=
-            Dimension::try_from(n).expect("shouldn't advance iterator by more than Dimension::MAX");
+            u32::try_from(n).expect("shouldn't advance iterator by more than u32::MAX");
         self.current_y += self.current_x / self.buffer_width;
         self.current_x %= self.buffer_width;
         Ok(())

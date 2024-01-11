@@ -1,6 +1,5 @@
 use crate::prelude::*;
-use crate::util::{dimension_to_usize, index_point};
-use crate::Dimension;
+use crate::util::{checked_size, index_point};
 
 /// Common sampling filters.
 pub mod filters;
@@ -51,7 +50,7 @@ impl_processable!(u8, u16, u32, u64, u128, i8, i16, i32, i64, i128, f32, f64, us
 #[must_use = "the resampled buffer is returned and the original view is left unmodified"]
 pub fn resample_horizontal<I, P, C, F, const N: usize>(
     view: &I,
-    width: Dimension,
+    width: u32,
     filter: F,
     window: f32,
 ) -> ImgBuf<P, Vec<P>>
@@ -66,8 +65,7 @@ where
     }
 
     // create container for result
-    let mut container =
-        Vec::with_capacity(dimension_to_usize(width) * dimension_to_usize(view.height()));
+    let mut container = Vec::with_capacity(checked_size(width, view.height()));
     let container_pixels = container.spare_capacity_mut();
 
     // find the ratio between the source width and the target width
@@ -86,13 +84,13 @@ where
 
     // precalculate weights
     let max_src_x_f32 = (view.width() - 1) as f32;
-    let mut weights = Vec::with_capacity((2 * (window as usize) + 1) * dimension_to_usize(width));
+    let mut weights = Vec::with_capacity((2 * (window as usize) + 1) * (width as usize));
     let mut weights_start_index = Vec::with_capacity(width as usize);
     for target_x in 0..width {
         let equivalent_src_x = target_x as f32 * ratio + 0.5 * (ratio - 1.0);
 
-        let min_src_pixel_x = (equivalent_src_x - window).clamp(0.0, max_src_x_f32) as Dimension;
-        let max_src_pixel_x = (equivalent_src_x + window).clamp(0.0, max_src_x_f32) as Dimension;
+        let min_src_pixel_x = (equivalent_src_x - window).clamp(0.0, max_src_x_f32) as u32;
+        let max_src_pixel_x = (equivalent_src_x + window).clamp(0.0, max_src_x_f32) as u32;
 
         weights_start_index.push(weights.len());
         for src_pixel_x in min_src_pixel_x..=max_src_pixel_x {
@@ -108,8 +106,8 @@ where
         // memory usage), so we just calculate them again
         let equivalent_src_x = target_x as f32 * ratio + (1.0 - 1.0 / ratio) / (2.0 / ratio);
 
-        let min_src_pixel_x = (equivalent_src_x - window).clamp(0.0, max_src_x_f32) as Dimension;
-        let max_src_pixel_x = (equivalent_src_x + window).clamp(0.0, max_src_x_f32) as Dimension;
+        let min_src_pixel_x = (equivalent_src_x - window).clamp(0.0, max_src_x_f32) as u32;
+        let max_src_pixel_x = (equivalent_src_x + window).clamp(0.0, max_src_x_f32) as u32;
 
         let weights_start = weights_start_index[target_x as usize];
         for target_y in 0..view.height() {
@@ -146,7 +144,7 @@ where
 
     // SAFETY: all pixels have already been initialized in the previous loop.
     unsafe {
-        let size = dimension_to_usize(width) * dimension_to_usize(view.height());
+        let size = checked_size(width, view.height());
         container.set_len(size);
     }
 
@@ -161,7 +159,7 @@ where
 #[must_use = "the resampled buffer is returned and the original view is left unmodified"]
 pub fn resample_vertical<I, P, C, F, const N: usize>(
     view: &I,
-    height: Dimension,
+    height: u32,
     filter: F,
     window: f32,
 ) -> ImgBuf<P, Vec<P>>
@@ -176,8 +174,7 @@ where
     }
 
     // create container for result
-    let mut container =
-        Vec::with_capacity(dimension_to_usize(height) * dimension_to_usize(view.width()));
+    let mut container = Vec::with_capacity(checked_size(view.width(), height));
     let container_pixels = container.spare_capacity_mut();
 
     // find the ratio between the source height and the target height
@@ -196,13 +193,13 @@ where
 
     // precalculate weights
     let max_src_y_f32 = (view.height() - 1) as f32;
-    let mut weights = Vec::with_capacity((2 * (window as usize) + 1) * dimension_to_usize(height));
+    let mut weights = Vec::with_capacity((2 * (window as usize) + 1) * (height as usize));
     let mut weights_start_index = Vec::with_capacity(height as usize);
     for target_y in 0..height {
         let equivalent_src_y = target_y as f32 * ratio + 0.5 * (ratio - 1.0);
 
-        let min_src_pixel_y = (equivalent_src_y - window).clamp(0.0, max_src_y_f32) as Dimension;
-        let max_src_pixel_y = (equivalent_src_y + window).clamp(0.0, max_src_y_f32) as Dimension;
+        let min_src_pixel_y = (equivalent_src_y - window).clamp(0.0, max_src_y_f32) as u32;
+        let max_src_pixel_y = (equivalent_src_y + window).clamp(0.0, max_src_y_f32) as u32;
 
         weights_start_index.push(weights.len());
         for src_pixel_y in min_src_pixel_y..=max_src_pixel_y {
@@ -218,8 +215,8 @@ where
         // memory usage), so we just calculate them again
         let equivalent_src_y = target_y as f32 * ratio + 0.5 * (ratio - 1.0);
 
-        let min_src_pixel_y = (equivalent_src_y - window).clamp(0.0, max_src_y_f32) as Dimension;
-        let max_src_pixel_y = (equivalent_src_y + window).clamp(0.0, max_src_y_f32) as Dimension;
+        let min_src_pixel_y = (equivalent_src_y - window).clamp(0.0, max_src_y_f32) as u32;
+        let max_src_pixel_y = (equivalent_src_y + window).clamp(0.0, max_src_y_f32) as u32;
 
         let weights_start = weights_start_index[target_y as usize];
         for target_x in 0..view.width() {
@@ -256,7 +253,7 @@ where
 
     // SAFETY: all pixels have already been initialized in the previous loop.
     unsafe {
-        let size = dimension_to_usize(height) * dimension_to_usize(view.width());
+        let size = checked_size(view.width(), height);
         container.set_len(size);
     }
 
@@ -271,7 +268,7 @@ where
 #[must_use = "the resampled buffer is returned and the original view is left unmodified"]
 pub fn resample<I, P, C, F, const N: usize>(
     view: &I,
-    (width, height): (Dimension, Dimension),
+    (width, height): (u32, u32),
     filter: F,
     window: f32,
 ) -> ImgBuf<P, Vec<P>>
@@ -330,7 +327,7 @@ pub enum ResizeFilter {
 #[must_use = "the resized buffer is returned and the original view is left unmodified"]
 pub fn resize<I, P, C, const N: usize>(
     view: &I,
-    dimensions: (Dimension, Dimension),
+    dimensions: (u32, u32),
     filter: ResizeFilter,
 ) -> ImgBuf<P, Vec<P>>
 where

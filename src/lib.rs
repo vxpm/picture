@@ -12,12 +12,7 @@
 //! [`ImgView`][prelude::ImgView] and [`ImgViewMut`][prelude::ImgViewMut] traits. Then, the
 //! [`ImgBuf`][prelude::ImgBuf] type.
 
-#[cfg(not(feature = "u64_dimensions"))]
-pub type Dimension = u32;
-#[cfg(feature = "u64_dimensions")]
-pub type Dimension = u64;
-
-pub type Point = (Dimension, Dimension);
+pub type Point = (u32, u32);
 
 /// [`ImgBuf`][buffer::ImgBuf] and everything related to it.
 pub mod buffer;
@@ -37,7 +32,8 @@ pub mod view;
 /// Re-exports the most useful items of the crate.
 pub mod prelude {
     use super::*;
-    pub use super::{Dimension, Point};
+
+    pub use super::Point;
     pub use buffer::{
         common::{Rgb16Img, Rgb8Img, Rgba16Img, Rgba8Img},
         ImgBuf,

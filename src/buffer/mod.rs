@@ -7,9 +7,9 @@ pub mod view;
 
 use crate::{
     pixel::Pixel,
-    util::{dimension_to_usize, index_point, macros::debug_assertions, Rect},
+    util::{checked_size, index_point, macros::debug_assertions, Rect},
     view::{ImgView, ImgViewMut},
-    Dimension, Point,
+    Point,
 };
 use std::{
     marker::PhantomData,
@@ -23,15 +23,15 @@ use view::{ImgBufView, ImgBufViewMut};
 /// `P` is it's pixel type and `C` it's container type.
 #[derive(Debug, Clone)]
 pub struct ImgBuf<P, C> {
-    width: Dimension,
-    height: Dimension,
+    width: u32,
+    height: u32,
     data: C,
     _phantom: PhantomData<P>,
 }
 
 impl<P> ImgBuf<P, Vec<P>> {
     /// Creates a new [`ImgBuf`] with the specified `width` and `height` from a function that generates pixels.
-    pub fn from_fn<F>(width: Dimension, height: Dimension, f: F) -> Self
+    pub fn from_fn<F>(width: u32, height: u32, f: F) -> Self
     where
         F: FnMut(Point) -> P,
     {
@@ -50,14 +50,19 @@ where
 {
     /// Creates a new [`ImgBuf`] with the specified `width` and `height` and [`Vec`] as it's container type.
     #[inline]
-    pub fn new(width: Dimension, height: Dimension) -> Self
+    pub fn new(width: u32, height: u32) -> Self
     where
         P: Default,
     {
         Self {
             width,
             height,
-            data: vec![P::default(); dimension_to_usize(width * height)],
+            data: vec![
+                P::default();
+                (width as usize)
+                    .checked_mul(height as usize)
+                    .expect("size fits within usize")
+            ],
             _phantom: PhantomData,
         }
     }
@@ -84,8 +89,8 @@ where
     /// # Panics
     /// Panics if `container.len() != width * height`.
     #[inline]
-    pub fn from_container(container: C, width: Dimension, height: Dimension) -> Self {
-        assert_eq!(container.len(), dimension_to_usize(width * height));
+    pub fn from_container(container: C, width: u32, height: u32) -> Self {
+        assert_eq!(container.len(), checked_size(width, height));
         Self {
             width,
             height,
@@ -215,17 +220,17 @@ where
         C: 'buffer_ref;
 
     #[inline]
-    fn width(&self) -> Dimension {
+    fn width(&self) -> u32 {
         self.width
     }
 
     #[inline]
-    fn height(&self) -> Dimension {
+    fn height(&self) -> u32 {
         self.height
     }
 
     #[inline]
-    fn dimensions(&self) -> (Dimension, Dimension) {
+    fn dimensions(&self) -> (u32, u32) {
         (self.width, self.height)
     }
 
@@ -308,7 +313,7 @@ where
             .expect("Inner result array and bounds array should have the same length")
     }
 
-    fn split_x_at_mut(&mut self, mid: Dimension) -> Option<(Self::ViewMut<'_>, Self::ViewMut<'_>)> {
+    fn split_x_at_mut(&mut self, mid: u32) -> Option<(Self::ViewMut<'_>, Self::ViewMut<'_>)> {
         let left_bounds = Rect::new((0, 0), (mid, self.height));
         let right_bounds = Rect::new((mid, 0), (self.width - mid, self.height));
         let ptr = self.as_mut_ptr();
@@ -327,7 +332,7 @@ where
         left.and_then(|left| right.map(|right| (left, right)))
     }
 
-    fn split_y_at_mut(&mut self, mid: Dimension) -> Option<(Self::ViewMut<'_>, Self::ViewMut<'_>)> {
+    fn split_y_at_mut(&mut self, mid: u32) -> Option<(Self::ViewMut<'_>, Self::ViewMut<'_>)> {
         let upper_bounds = Rect::new((0, 0), (self.width, mid));
         let lower_bounds = Rect::new((0, mid), (self.width, self.height - mid));
         let ptr = self.as_mut_ptr();

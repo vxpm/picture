@@ -1,11 +1,5 @@
 use super::BlockOps;
-use crate::{
-    pixel::Pixel,
-    prelude::Dimension,
-    util::{dimension_to_usize, index_point},
-    view::ImgView,
-    Point,
-};
+use crate::{pixel::Pixel, util::index_point, view::ImgView, Point};
 use std::{iter::FusedIterator, marker::PhantomData};
 
 /// Iterator over the pixels of an [`ImgView`] and their relative coordinates.
@@ -15,8 +9,8 @@ where
     V: ImgView,
 {
     view: &'view_ref V,
-    current_x: Dimension,
-    current_y: Dimension,
+    current_x: u32,
+    current_y: u32,
 }
 
 impl<'view_ref, V> PixelsWithCoords<'view_ref, V>
@@ -55,7 +49,7 @@ where
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let total_size = dimension_to_usize(self.view.size());
+        let total_size = self.view.size();
         let current_size = total_size
             .checked_sub(index_point(
                 (self.current_x, self.current_y),
@@ -69,7 +63,7 @@ where
     #[cfg(feature = "unstable")]
     fn advance_by(&mut self, n: usize) -> Result<(), usize> {
         self.current_x +=
-            Dimension::try_from(n).expect("shouldn't advance iterator by more than Dimension::MAX");
+            u32::try_from(n).expect("shouldn't advance iterator by more than u32::MAX");
         self.current_y += self.current_x / self.view.width();
         self.current_x %= self.view.width();
         Ok(())
@@ -128,9 +122,9 @@ impl<'view_ref, V> FusedIterator for Pixels<'view_ref, V> where V: ImgView {}
 #[derive(Debug, Clone)]
 pub struct Blocks<'view_ref, P, V> {
     view: &'view_ref V,
-    current_x: Dimension,
-    current_y: Dimension,
-    block_dimensions: (Dimension, Dimension),
+    current_x: u32,
+    current_y: u32,
+    block_dimensions: (u32, u32),
     _phantom: PhantomData<&'view_ref [P]>,
 }
 
@@ -140,7 +134,7 @@ where
     V: ImgView<Pixel = P>,
 {
     #[inline]
-    pub fn new(view: &'view_ref V, block_dimensions: (Dimension, Dimension)) -> Self {
+    pub fn new(view: &'view_ref V, block_dimensions: (u32, u32)) -> Self {
         Self {
             view,
             current_x: 0,
@@ -178,11 +172,9 @@ where
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        // can be made into an exact hint but i'm too lazy
-        let size = dimension_to_usize(self.view.width_in_blocks(self.block_dimensions.0))
-            .checked_mul(dimension_to_usize(
-                self.view.height_in_blocks(self.block_dimensions.1),
-            ))
+        // TODO: can be made into an exact hint but i'm too lazy
+        let size = (self.view.width_in_blocks(self.block_dimensions.0) as usize)
+            .checked_mul(self.view.height_in_blocks(self.block_dimensions.1) as usize)
             .expect("size shouldn't overflow");
 
         (0, Some(size))

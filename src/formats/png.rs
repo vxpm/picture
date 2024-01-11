@@ -1,6 +1,6 @@
 use crate::pixel::common::*;
 use crate::prelude::{ImgView, Pixel};
-use crate::util::{dimension_to_usize, Array};
+use crate::util::Array;
 use crate::{
     buffer::common::{Gray8Img, Graya8Img},
     prelude::{Rgb8Img, Rgba8Img},
@@ -110,7 +110,7 @@ impl PngEncoder {
         I::Pixel: Pixel,
     {
         let mut buffer: Vec<u8> = Vec::with_capacity(
-            dimension_to_usize(view.size()) * <<I::Pixel as Pixel>::Channels as Array>::SIZE,
+            view.size() * <<I::Pixel as Pixel>::Channels as Array>::SIZE,
         );
 
         {

@@ -1,6 +1,6 @@
 use crate::{
-    prelude::{Dimension, ImgBuf, ImgView, Pixel, Rgb8Img, Rgba8Img},
-    util::{dimension_to_u32, dimension_to_usize, Array},
+    prelude::{ImgBuf, ImgView, Pixel, Rgb8Img, Rgba8Img},
+    util::Array,
 };
 use either::Either;
 use rgb::{RGB8, RGBA8};
@@ -26,8 +26,8 @@ impl QoiDecoder {
 
                 Ok(Either::Left(ImgBuf::from_container(
                     container,
-                    decoder.header().width as Dimension,
-                    decoder.header().height as Dimension,
+                    decoder.header().width,
+                    decoder.header().height,
                 )))
             }
             qoi::Channels::Rgba => {
@@ -37,8 +37,8 @@ impl QoiDecoder {
 
                 Ok(Either::Right(ImgBuf::from_container(
                     container,
-                    decoder.header().width as Dimension,
-                    decoder.header().height as Dimension,
+                    decoder.header().width,
+                    decoder.header().height,
                 )))
             }
         }
@@ -80,17 +80,12 @@ impl QoiEncoder {
         I: ImgView,
         I::Pixel: Pixel,
     {
-        let mut buffer: Vec<u8> = Vec::with_capacity(
-            dimension_to_usize(view.size()) * <<I::Pixel as Pixel>::Channels as Array>::SIZE,
-        );
+        let mut buffer: Vec<u8> =
+            Vec::with_capacity(view.size() * <<I::Pixel as Pixel>::Channels as Array>::SIZE);
         view.write_data(&mut buffer)?;
 
-        let encoder = qoi::Encoder::new(
-            &buffer,
-            dimension_to_u32(view.width()),
-            dimension_to_u32(view.height()),
-        )?
-        .with_colorspace(self.colorspace);
+        let encoder = qoi::Encoder::new(&buffer, view.width(), view.height())?
+            .with_colorspace(self.colorspace);
         encoder.encode_to_vec()
     }
 }

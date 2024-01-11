@@ -1,4 +1,4 @@
-use super::{Dimension, ImgBuf};
+use super::ImgBuf;
 use crate::{
     pixel::Pixel,
     util::{index_point, Rect},
@@ -17,7 +17,7 @@ pub mod iter;
 #[derive(Clone)]
 pub struct ImgBufView<'buffer_ref, P> {
     ptr: NonNull<P>,
-    buffer_width: Dimension,
+    buffer_width: u32,
     bounds: Rect,
     _phantom: PhantomData<&'buffer_ref [P]>,
 }
@@ -69,17 +69,17 @@ where
         Self: 'self_ref;
 
     #[inline]
-    fn width(&self) -> Dimension {
+    fn width(&self) -> u32 {
         self.bounds.dimensions().0
     }
 
     #[inline]
-    fn height(&self) -> Dimension {
+    fn height(&self) -> u32 {
         self.bounds.dimensions().1
     }
 
     #[inline]
-    fn dimensions(&self) -> (Dimension, Dimension) {
+    fn dimensions(&self) -> (u32, u32) {
         self.bounds.dimensions()
     }
 
@@ -135,7 +135,7 @@ where
 /// A mutable view into an [`ImgBuf`].
 pub struct ImgBufViewMut<'buffer_ref, P> {
     ptr: NonNull<P>,
-    buffer_width: Dimension,
+    buffer_width: u32,
     bounds: Rect,
     _phantom: PhantomData<&'buffer_ref mut [P]>,
 }
@@ -168,7 +168,7 @@ where
     /// SAFETY: it's up to the caller to ensure `bounds` is within the buffer and that
     /// this view does _not_ overlap with any other.
     #[inline]
-    pub(super) unsafe fn from_ptr(ptr: NonNull<P>, buffer_width: Dimension, bounds: Rect) -> Self {
+    pub(super) unsafe fn from_ptr(ptr: NonNull<P>, buffer_width: u32, bounds: Rect) -> Self {
         ImgBufViewMut {
             ptr,
             buffer_width,
@@ -204,17 +204,17 @@ where
         Self: 'self_ref;
 
     #[inline]
-    fn width(&self) -> Dimension {
+    fn width(&self) -> u32 {
         self.bounds.dimensions().0
     }
 
     #[inline]
-    fn height(&self) -> Dimension {
+    fn height(&self) -> u32 {
         self.bounds.dimensions().1
     }
 
     #[inline]
-    fn dimensions(&self) -> (Dimension, Dimension) {
+    fn dimensions(&self) -> (u32, u32) {
         self.bounds.dimensions()
     }
 
@@ -318,7 +318,7 @@ where
             .expect("Inner result array and bounds array should have the same length")
     }
 
-    fn split_x_at_mut(&mut self, mid: Dimension) -> Option<(Self::ViewMut<'_>, Self::ViewMut<'_>)> {
+    fn split_x_at_mut(&mut self, mid: u32) -> Option<(Self::ViewMut<'_>, Self::ViewMut<'_>)> {
         let left_bounds = Rect::new((0, 0), (mid, self.height()));
         let right_bounds = Rect::new((mid, 0), (self.width() - mid, self.height()));
 
@@ -348,7 +348,7 @@ where
         left.and_then(|left| right.map(|right| (left, right)))
     }
 
-    fn split_y_at_mut(&mut self, mid: Dimension) -> Option<(Self::ViewMut<'_>, Self::ViewMut<'_>)> {
+    fn split_y_at_mut(&mut self, mid: u32) -> Option<(Self::ViewMut<'_>, Self::ViewMut<'_>)> {
         let upper_bounds = Rect::new((0, 0), (self.width(), mid));
         let lower_bounds = Rect::new((0, mid), (self.width(), self.height() - mid));
 

@@ -1,4 +1,4 @@
-use crate::{prelude::Dimension, Point};
+use crate::prelude::Point;
 
 pub(crate) mod macros;
 
@@ -63,18 +63,18 @@ impl<T, const SIZE: usize> Array for [T; SIZE] {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Rect {
     top_left: Point,
-    dimensions: (Dimension, Dimension),
+    dimensions: (u32, u32),
 }
 
 impl Rect {
-    /// Creates a new [`Rect`] from a [`Point`] and [`Dimension`]s.
+    /// Creates a new [`Rect`] from a [`Point`] and [`u32`]s.
     ///
     /// # Panics
-    /// Panics if the coordinates of the bottom-right point of the rect would not fit into [`Dimension`]s.
+    /// Panics if the coordinates of the bottom-right point of the rect would not fit into [`u32`]s.
     ///
     /// See [`Rect::try_new`] for a fallible alternative.
     #[inline]
-    pub const fn new(top_left: Point, dimensions: (Dimension, Dimension)) -> Self {
+    pub const fn new(top_left: Point, dimensions: (u32, u32)) -> Self {
         assert!(top_left.0.checked_add(dimensions.0).is_some());
         assert!(top_left.1.checked_add(dimensions.1).is_some());
 
@@ -84,10 +84,10 @@ impl Rect {
         }
     }
 
-    /// Creates a new [`Rect`] from a [`Point`] and [`Dimension`]s. Returns [`None`] if the coordinates
-    /// of the bottom-right point of the rect would not fit into [`Dimension`]s.
+    /// Creates a new [`Rect`] from a [`Point`] and [`u32`]s. Returns [`None`] if the coordinates
+    /// of the bottom-right point of the rect would not fit into [`u32`]s.
     #[inline]
-    pub const fn try_new(top_left: Point, dimensions: (Dimension, Dimension)) -> Option<Self> {
+    pub const fn try_new(top_left: Point, dimensions: (u32, u32)) -> Option<Self> {
         if top_left.0.checked_add(dimensions.0).is_some()
             && top_left.1.checked_add(dimensions.1).is_some()
         {
@@ -154,9 +154,9 @@ impl Rect {
         }
     }
 
-    /// Returns the [`Dimension`]s of this [`Rect`].
+    /// Returns the [`u32`]s of this [`Rect`].
     #[inline]
-    pub const fn dimensions(&self) -> (Dimension, Dimension) {
+    pub const fn dimensions(&self) -> (u32, u32) {
         self.dimensions
     }
 
@@ -166,12 +166,9 @@ impl Rect {
     }
 
     /// Returns the length of this [`Rect`], i.e. `width x height`.
-    ///
-    /// # Panics
-    /// Panics if `width x height` does not fit into a dimension.
     #[inline]
-    pub const fn len(&self) -> Dimension {
-        self.dimensions.0 * self.dimensions.1
+    pub const fn len(&self) -> u64 {
+        self.dimensions.0 as u64 * self.dimensions.1 as u64
     }
 
     /// Returns whether this [`Rect`] contains a given point.
@@ -251,45 +248,27 @@ impl Rect {
     }
 }
 
-/// Converts a [`Dimension`] to an [`usize`].
-///
-/// This has [no overhead](https://godbolt.org/z/fGPq71b41) if [`Dimension`] always fits
-/// into an usize.
-///
-/// # Panics
-/// Panics if it does not fit.
 #[inline(always)]
-pub fn dimension_to_usize(x: Dimension) -> usize {
-    usize::try_from(x).expect("Dimension should fit into usize")
-}
-
-/// Converts a [`Dimension`] to an [`u32`].
-///
-/// This has [no overhead](https://godbolt.org/z/fGPq71b41) if [`Dimension`] always fits
-/// into an u32.
-///
-/// # Panics
-/// Panics if it does not fit.
-#[inline(always)]
-pub fn dimension_to_u32(x: Dimension) -> u32 {
-    #[allow(clippy::useless_conversion)]
-    u32::try_from(x).expect("Dimension should fit into u32")
+pub fn checked_size(width: u32, height: u32) -> usize {
+    (width as usize)
+        .checked_mul(height as usize)
+        .expect("size should fit within usize")
 }
 
 /// Calculates an index from a `point` and a `width`: `point.1 * width + point.0`.
 ///
-/// This has [no overhead](https://godbolt.org/z/fGPq71b41) if [`Dimension`] is smaller
+/// This has [no overhead](https://godbolt.org/z/fGPq71b41) if [`u32`] is smaller
 /// than [`usize`].
 ///
 /// # Panics
 /// Panics if either
-/// 1. A [`Dimension`] to [`usize`] conversion panics (number doesn't fit), _or..._
+/// 1. A [`u32`] to [`usize`] conversion panics (number doesn't fit), _or..._
 /// 2. The result overflows.
 #[inline(always)]
-pub fn index_point((x, y): Point, width: Dimension) -> usize {
-    dimension_to_usize(y)
-        .checked_mul(dimension_to_usize(width))
-        .and_then(|res| res.checked_add(dimension_to_usize(x)))
+pub fn index_point((x, y): Point, width: u32) -> usize {
+    (y as usize)
+        .checked_mul(width as usize)
+        .and_then(|res| res.checked_add(x as usize))
         .expect("index calculation shouldn't overflow")
 }
 
@@ -299,7 +278,7 @@ mod tests {
     use proptest::prelude::*;
 
     fn rect_strat() -> impl Strategy<Value = Rect> {
-        (any::<Point>(), any::<(Dimension, Dimension)>()).prop_filter_map(
+        (any::<Point>(), any::<(u32, u32)>()).prop_filter_map(
             "only valid rectangles accepted",
             |(top_left, dimensions)| Rect::try_new(top_left, dimensions),
         )

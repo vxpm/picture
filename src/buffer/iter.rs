@@ -2,7 +2,7 @@ use super::ImgBuf;
 use crate::{
     pixel::Pixel,
     view::{ImgView, ImgViewMut},
-    Dimension, Point,
+    Point,
 };
 #[cfg(feature = "unstable")]
 use std::iter::TrustedLen;
@@ -30,9 +30,9 @@ impl<'buffer_ref, P> EnsureTrustedLen for PixelsMut<'buffer_ref, P> {}
 #[derive(Clone)]
 pub struct PixelsWithCoords<'buffer_ref, P> {
     pixels: Pixels<'buffer_ref, P>,
-    current_x: Dimension,
-    current_y: Dimension,
-    buffer_width: Dimension,
+    current_x: u32,
+    current_y: u32,
+    buffer_width: u32,
 }
 
 impl<'buffer_ref, P> PixelsWithCoords<'buffer_ref, P>
@@ -83,7 +83,7 @@ impl<'buffer_ref, P> Iterator for PixelsWithCoords<'buffer_ref, P> {
         self.pixels.advance_by(n)?;
 
         self.current_x +=
-            Dimension::try_from(n).expect("shouldn't advance iterator by more than Dimension::MAX");
+            u32::try_from(n).expect("shouldn't advance iterator by more than u32::MAX");
         self.current_y += self.current_x / self.buffer_width;
         self.current_x %= self.buffer_width;
 
@@ -101,9 +101,9 @@ unsafe impl<'buffer_ref, P> TrustedLen for PixelsWithCoords<'buffer_ref, P> {}
 /// Mutable iterator over the pixels of a [`ImgBuf`] with their respective coordinates.
 pub struct PixelsWithCoordsMut<'buffer_ref, P> {
     pixels: PixelsMut<'buffer_ref, P>,
-    current_x: Dimension,
-    current_y: Dimension,
-    buffer_width: Dimension,
+    current_x: u32,
+    current_y: u32,
+    buffer_width: u32,
 }
 
 impl<'buffer_ref, P> PixelsWithCoordsMut<'buffer_ref, P>
@@ -154,7 +154,7 @@ impl<'buffer_ref, P> Iterator for PixelsWithCoordsMut<'buffer_ref, P> {
         self.pixels.advance_by(n)?;
 
         self.current_x +=
-            Dimension::try_from(n).expect("shouldn't advance iterator by more than Dimension::MAX");
+            u32::try_from(n).expect("shouldn't advance iterator by more than u32::MAX");
         self.current_y += self.current_x / self.buffer_width;
         self.current_x %= self.buffer_width;
 
