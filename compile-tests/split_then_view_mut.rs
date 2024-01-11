@@ -1,6 +1,6 @@
 use picture::prelude::*;
 fn main() {
-    let mut img = Rgb8Image::new(1024, 1024);
+    let mut img = Rgb8Img::new(1024, 1024);
 
     let (view_a, view_b) = img.split_x_at(0).unwrap();
     let _view_mut = img.view_mut(Rect::empty((0, 0)));

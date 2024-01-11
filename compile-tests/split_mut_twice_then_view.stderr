@@ -2,10 +2,10 @@ error[E0502]: cannot borrow `img` as immutable because it is also borrowed as mu
   --> compile-tests/split_mut_twice_then_view.rs:9:17
    |
 5  |     let (mut view_mut_a, mut view_mut_b) = img.split_x_at_mut(0).unwrap();
-   |                                            --------------------- mutable borrow occurs here
+   |                                            --- mutable borrow occurs here
 ...
 9  |     let _view = img.view(Rect::empty((0, 0)));
-   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ immutable borrow occurs here
+   |                 ^^^ immutable borrow occurs here
 10 |
 11 |     let _ = view_mut_a_1.pixel((0, 0));
-   |             -------------------------- mutable borrow later used here
+   |             ------------ mutable borrow later used here
