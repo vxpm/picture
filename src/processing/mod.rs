@@ -65,7 +65,8 @@ where
     }
 
     // create container for result
-    let mut container = Vec::with_capacity(checked_size(width, view.height()));
+    let container_size = checked_size(width, view.height());
+    let mut container = Vec::with_capacity(container_size);
     let container_pixels = container.spare_capacity_mut();
 
     // find the ratio between the source width and the target width
@@ -89,11 +90,11 @@ where
     for target_x in 0..width {
         let equivalent_src_x = target_x as f32 * ratio + 0.5 * (ratio - 1.0);
 
-        let min_src_pixel_x = (equivalent_src_x - window).clamp(0.0, max_src_x_f32) as u32;
-        let max_src_pixel_x = (equivalent_src_x + window).clamp(0.0, max_src_x_f32) as u32;
+        let left_src_pixel_x = (equivalent_src_x - window).clamp(0.0, max_src_x_f32) as u32;
+        let right_src_pixel_x = (equivalent_src_x + window).clamp(0.0, max_src_x_f32) as u32;
 
         weights_start_index.push(weights.len());
-        for src_pixel_x in min_src_pixel_x..=max_src_pixel_x {
+        for src_pixel_x in left_src_pixel_x..=right_src_pixel_x {
             weights.push(filter(
                 (src_pixel_x as f32 - equivalent_src_x) * inverse_sampling_ratio,
             ));
@@ -127,25 +128,21 @@ where
                 }
             }
 
-            let result: arrayvec::ArrayVec<_, N> = channel_value_sum
-                .into_iter()
-                .map(|v| C::from_f32(v / weight_sum))
-                .collect();
+            let result = channel_value_sum.map(|v| C::from_f32(v / weight_sum));
 
             // SAFETY: this index will always be valid since target_x and target_y are always in
             // the correct range.
             unsafe {
                 container_pixels
                     .get_unchecked_mut(index_point((target_x, target_y), width))
-                    .write(P::new(result.into_inner_unchecked()));
+                    .write(P::new(result));
             }
         }
     }
 
     // SAFETY: all pixels have already been initialized in the previous loop.
     unsafe {
-        let size = checked_size(width, view.height());
-        container.set_len(size);
+        container.set_len(container_size);
     }
 
     ImgBuf::from_container(container, width, view.height())
@@ -174,7 +171,8 @@ where
     }
 
     // create container for result
-    let mut container = Vec::with_capacity(checked_size(view.width(), height));
+    let container_size = checked_size(view.width(), height);
+    let mut container = Vec::with_capacity(container_size);
     let container_pixels = container.spare_capacity_mut();
 
     // find the ratio between the source height and the target height
@@ -236,25 +234,21 @@ where
                 }
             }
 
-            let result: arrayvec::ArrayVec<_, N> = channel_value_sum
-                .into_iter()
-                .map(|v| C::from_f32(v / weight_sum))
-                .collect();
+            let result = channel_value_sum.map(|v| C::from_f32(v / weight_sum));
 
             // SAFETY: this index will always be valid since target_x and target_y are always in
             // the correct range.
             unsafe {
                 container_pixels
                     .get_unchecked_mut(index_point((target_x, target_y), view.width()))
-                    .write(P::new(result.into_inner_unchecked()));
+                    .write(P::new(result));
             }
         }
     }
 
     // SAFETY: all pixels have already been initialized in the previous loop.
     unsafe {
-        let size = checked_size(view.width(), height);
-        container.set_len(size);
+        container.set_len(container_size);
     }
 
     ImgBuf::from_container(container, view.width(), height)
