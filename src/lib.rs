@@ -9,8 +9,7 @@
 //!
 //! # Quick Start
 //! Take a look at the [`prelude`] for the most important items. Start with the [`Pixel`][prelude::Pixel],
-//! [`ImgView`][prelude::ImgView] and [`ImgViewMut`][prelude::ImgViewMut] traits. Then, the
-//! [`ImgBuf`][prelude::ImgBuf] type.
+//! [`Img`][prelude::Img] and [`ImgMut`][prelude::ImgMut] traits. Then, the [`ImgBuf`][prelude::ImgBuf] type.
 
 pub type Point = (u32, u32);
 
@@ -27,7 +26,7 @@ pub mod pixel;
 pub mod processing;
 /// Overall utilities.
 pub mod util;
-/// [`ImgView`][view::ImgView] and [`ImgViewMut`][view::ImgViewMut] traits (+ extensions).
+/// [`Img`][view::Img] and [`ImgMut`][view::ImgMut] traits.
 pub mod view;
 /// Re-exports the most useful items of the crate.
 pub mod prelude {
@@ -43,7 +42,7 @@ pub mod prelude {
         Pixel,
     };
     pub use util::Rect;
-    pub use view::{ImgView, ImgViewMut};
+    pub use view::{Img, ImgMut};
 }
 
 #[cfg(all(test, not(miri)))]

@@ -3,14 +3,8 @@ pub mod iter;
 
 use crate::{buffer::ImgBuf, pixel::Pixel, util::Rect, Point};
 
-// types: ImgBuf, ImgBufView, ImgBufViewMut
-//
-// Trait       | Implemented for...
-// ImgView    -> ImgBuf, ImgBufView, ImgBufViewMut
-// ImgViewMut -> ImgBuf, ImgBufViewMut
-
 /// Trait for types that can be treated as a view into some image.
-pub trait ImgView {
+pub trait Img {
     /// The pixel type of this view.
     type Pixel: Pixel;
 
@@ -20,7 +14,7 @@ pub trait ImgView {
         Self: 'view_ref;
 
     /// The view type the `view` method returns.
-    type View<'view_ref>: ImgView<Pixel = Self::Pixel>
+    type View<'view_ref>: Img<Pixel = Self::Pixel>
     where
         Self: 'view_ref;
 
@@ -156,14 +150,14 @@ pub trait ImgView {
 }
 
 /// Trait for types that can be treated as a mutable view into some image.
-pub trait ImgViewMut: ImgView {
+pub trait ImgMut: Img {
     /// The type of the iterator through mutable pixels of this view.
     type PixelsMut<'view_ref>: Iterator<Item = &'view_ref mut Self::Pixel>
     where
         Self: 'view_ref;
 
     /// The mutable view type the `view_mut` method returns.
-    type ViewMut<'view_ref>: ImgViewMut<Pixel = Self::Pixel>
+    type ViewMut<'view_ref>: ImgMut<Pixel = Self::Pixel>
     where
         Self: 'view_ref;
 
@@ -246,7 +240,7 @@ pub trait ImgViewMut: ImgView {
     #[inline]
     fn copy_from<I>(&mut self, view: &I)
     where
-        I: ImgView<Pixel = Self::Pixel>,
+        I: Img<Pixel = Self::Pixel>,
         Self::Pixel: Clone,
     {
         assert_eq!(self.dimensions(), view.dimensions());
@@ -262,7 +256,7 @@ pub trait ImgViewMut: ImgView {
     #[inline]
     fn swap_with<I>(&mut self, view: &mut I)
     where
-        I: ImgViewMut<Pixel = Self::Pixel>,
+        I: ImgMut<Pixel = Self::Pixel>,
     {
         assert_eq!(self.dimensions(), view.dimensions());
         self.pixels_mut()

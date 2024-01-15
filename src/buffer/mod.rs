@@ -8,7 +8,7 @@ pub mod view;
 use crate::{
     pixel::Pixel,
     util::{checked_size, index_point, macros::debug_assertions, Rect},
-    view::{ImgView, ImgViewMut},
+    view::{Img, ImgMut},
     Point,
 };
 use std::{
@@ -195,7 +195,7 @@ where
     }
 }
 
-impl<P, C> ImgView for ImgBuf<P, C>
+impl<P, C> Img for ImgBuf<P, C>
 where
     P: Pixel,
     C: Deref<Target = [P]>,
@@ -250,7 +250,7 @@ where
     }
 }
 
-impl<P, C> ImgViewMut for ImgBuf<P, C>
+impl<P, C> ImgMut for ImgBuf<P, C>
 where
     P: Pixel,
     C: DerefMut<Target = [P]>,
@@ -357,7 +357,7 @@ where
 {
     type Item = &'view_ref P;
 
-    type IntoIter = <ImgBuf<P, C> as ImgView>::Pixels<'view_ref>;
+    type IntoIter = <ImgBuf<P, C> as Img>::Pixels<'view_ref>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.pixels()
@@ -371,7 +371,7 @@ where
 {
     type Item = &'view_ref mut P;
 
-    type IntoIter = <ImgBuf<P, C> as ImgViewMut>::PixelsMut<'view_ref>;
+    type IntoIter = <ImgBuf<P, C> as ImgMut>::PixelsMut<'view_ref>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.pixels_mut()

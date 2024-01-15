@@ -74,8 +74,8 @@ fn fractal(c: &mut Criterion) {
 
 fn picture_diff<I1, I2>(a: &I1, b: &I2) -> u64
 where
-    I1: ImgView<Pixel = RGB8>,
-    I2: ImgView<Pixel = RGB8>,
+    I1: Img<Pixel = RGB8>,
+    I2: Img<Pixel = RGB8>,
 {
     a.pixels()
         .flat_map(|p| p.channels())
@@ -115,8 +115,8 @@ fn diff(c: &mut Criterion) {
 
 fn picture_match<I1, I2>(source: &I1, target: &I2) -> Rect
 where
-    I1: ImgView<Pixel = RGB8>,
-    I2: ImgView<Pixel = RGB8>,
+    I1: Img<Pixel = RGB8>,
+    I2: Img<Pixel = RGB8>,
 {
     // given 'source', find the block that matches most closely the 'target'
     let max_x = source.dimensions().0 - target.dimensions().0;

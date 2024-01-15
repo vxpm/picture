@@ -1,7 +1,7 @@
 use super::ImgBuf;
 use crate::{
     pixel::Pixel,
-    view::{ImgView, ImgViewMut},
+    view::{Img, ImgMut},
     Point,
 };
 #[cfg(feature = "unstable")]

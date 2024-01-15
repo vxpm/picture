@@ -1,11 +1,11 @@
-use crate::{util::index_point, view::ImgView, Point};
+use crate::{util::index_point, view::Img, Point};
 use std::iter::FusedIterator;
 
-/// Iterator over the pixels of an [`ImgView`] and their relative coordinates.
+/// Iterator over the pixels of an [`Img`] and their relative coordinates.
 #[derive(Debug, Clone)]
 pub struct PixelsWithCoords<'view_ref, V>
 where
-    V: ImgView,
+    V: Img,
 {
     view: &'view_ref V,
     current_x: u32,
@@ -14,7 +14,7 @@ where
 
 impl<'view_ref, V> PixelsWithCoords<'view_ref, V>
 where
-    V: ImgView,
+    V: Img,
 {
     #[inline]
     pub fn new(view: &'view_ref V) -> Self {
@@ -28,7 +28,7 @@ where
 
 impl<'view_ref, V> Iterator for PixelsWithCoords<'view_ref, V>
 where
-    V: ImgView,
+    V: Img,
 {
     type Item = (Point, &'view_ref V::Pixel);
 
@@ -69,17 +69,17 @@ where
     }
 }
 
-impl<'view_ref, V> ExactSizeIterator for PixelsWithCoords<'view_ref, V> where V: ImgView {}
-impl<'view_ref, V> FusedIterator for PixelsWithCoords<'view_ref, V> where V: ImgView {}
+impl<'view_ref, V> ExactSizeIterator for PixelsWithCoords<'view_ref, V> where V: Img {}
+impl<'view_ref, V> FusedIterator for PixelsWithCoords<'view_ref, V> where V: Img {}
 
-/// Iterator over the pixels of an [`ImgView`].
+/// Iterator over the pixels of an [`Img`].
 pub struct Pixels<'view_ref, V>(PixelsWithCoords<'view_ref, V>)
 where
-    V: ImgView;
+    V: Img;
 
 impl<'view_ref, V> Pixels<'view_ref, V>
 where
-    V: ImgView,
+    V: Img,
 {
     #[inline]
     pub fn new(view: &'view_ref V) -> Self {
@@ -89,7 +89,7 @@ where
 
 impl<'view_ref, V> Iterator for Pixels<'view_ref, V>
 where
-    V: ImgView,
+    V: Img,
 {
     type Item = &'view_ref V::Pixel;
 
@@ -110,5 +110,5 @@ where
     }
 }
 
-impl<'view_ref, V> ExactSizeIterator for Pixels<'view_ref, V> where V: ImgView {}
-impl<'view_ref, V> FusedIterator for Pixels<'view_ref, V> where V: ImgView {}
+impl<'view_ref, V> ExactSizeIterator for Pixels<'view_ref, V> where V: Img {}
+impl<'view_ref, V> FusedIterator for Pixels<'view_ref, V> where V: Img {}

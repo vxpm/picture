@@ -1,5 +1,5 @@
 use crate::{
-    prelude::{ImgBuf, ImgView, Pixel, Rgb8Img, Rgba8Img},
+    prelude::{Img, ImgBuf, Pixel, Rgb8Img, Rgba8Img},
     util::Array,
 };
 use either::Either;
@@ -77,7 +77,7 @@ impl Default for QoiEncoder {
 impl QoiEncoder {
     pub fn encode<I>(self, view: I) -> Result<Vec<u8>, QoiError>
     where
-        I: ImgView,
+        I: Img,
         I::Pixel: Pixel,
     {
         let mut buffer: Vec<u8> =

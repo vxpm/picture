@@ -55,7 +55,7 @@ pub fn resample_horizontal<I, P, C, F, const N: usize>(
     window: f32,
 ) -> ImgBuf<P, Vec<P>>
 where
-    I: ImgView<Pixel = P>,
+    I: Img<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
     C: Processable,
     F: Fn(f32) -> f32,
@@ -163,7 +163,7 @@ pub fn resample_vertical<I, P, C, F, const N: usize>(
     window: f32,
 ) -> ImgBuf<P, Vec<P>>
 where
-    I: ImgView<Pixel = P>,
+    I: Img<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
     C: Processable,
     F: Fn(f32) -> f32,
@@ -271,7 +271,7 @@ pub fn resample<I, P, C, F, const N: usize>(
     window: f32,
 ) -> ImgBuf<P, Vec<P>>
 where
-    I: ImgView<Pixel = P>,
+    I: Img<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
     C: Processable,
     F: Fn(f32) -> f32,
@@ -285,7 +285,7 @@ where
 #[must_use = "the blurred buffer is returned and the original view is left unmodified"]
 pub fn box_blur<I, P, C, const N: usize>(view: &I, strength: f32) -> ImgBuf<P, Vec<P>>
 where
-    I: ImgView<Pixel = P>,
+    I: Img<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
     C: Processable,
 {
@@ -297,7 +297,7 @@ where
 #[must_use = "the blurred buffer is returned and the original view is left unmodified"]
 pub fn gaussian_blur<I, P, C, const N: usize>(view: &I, strength: f32) -> ImgBuf<P, Vec<P>>
 where
-    I: ImgView<Pixel = P>,
+    I: Img<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
     C: Processable,
 {
@@ -330,7 +330,7 @@ pub fn resize<I, P, C, const N: usize>(
     filter: ResizeFilter,
 ) -> ImgBuf<P, Vec<P>>
 where
-    I: ImgView<Pixel = P>,
+    I: Img<Pixel = P>,
     P: Pixel<Channels = [C; N]>,
     C: Processable,
 {
@@ -348,7 +348,7 @@ where
 /// Flips the given view horizontally.
 pub fn flip_horizontal<I>(view: &mut I)
 where
-    I: ImgViewMut,
+    I: ImgMut,
 {
     for y in 0..view.height() {
         for x in 0..(view.width() / 2) {
@@ -370,7 +370,7 @@ where
 /// Flips the given view vertically.
 pub fn flip_vertical<I>(view: &mut I)
 where
-    I: ImgViewMut,
+    I: ImgMut,
 {
     for x in 0..view.width() {
         for y in 0..(view.height() / 2) {

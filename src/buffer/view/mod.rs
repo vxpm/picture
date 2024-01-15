@@ -2,7 +2,7 @@ use super::ImgBuf;
 use crate::{
     pixel::Pixel,
     util::{index_point, Rect},
-    view::{self, ImgView, ImgViewMut},
+    view::{self, Img, ImgMut},
     Point,
 };
 use std::{
@@ -55,7 +55,7 @@ where
     }
 }
 
-impl<'buffer_ref, P> ImgView for ImgBufView<'buffer_ref, P>
+impl<'buffer_ref, P> Img for ImgBufView<'buffer_ref, P>
 where
     P: Pixel,
 {
@@ -125,7 +125,7 @@ where
 {
     type Item = &'view_ref P;
 
-    type IntoIter = <ImgBufView<'buffer_ref, P> as ImgView>::Pixels<'view_ref>;
+    type IntoIter = <ImgBufView<'buffer_ref, P> as Img>::Pixels<'view_ref>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.pixels()
@@ -190,7 +190,7 @@ where
     }
 }
 
-impl<'buffer_ref, P> ImgView for ImgBufViewMut<'buffer_ref, P>
+impl<'buffer_ref, P> Img for ImgBufViewMut<'buffer_ref, P>
 where
     P: Pixel,
 {
@@ -256,7 +256,7 @@ where
     }
 }
 
-impl<'buffer_ref, P> ImgViewMut for ImgBufViewMut<'buffer_ref, P>
+impl<'buffer_ref, P> ImgMut for ImgBufViewMut<'buffer_ref, P>
 where
     P: Pixel,
 {
@@ -377,7 +377,7 @@ where
 {
     type Item = &'view_ref P;
 
-    type IntoIter = <ImgBufViewMut<'buffer_ref, P> as ImgView>::Pixels<'view_ref>;
+    type IntoIter = <ImgBufViewMut<'buffer_ref, P> as Img>::Pixels<'view_ref>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.pixels()
@@ -390,7 +390,7 @@ where
 {
     type Item = &'view_ref mut P;
 
-    type IntoIter = <ImgBufViewMut<'buffer_ref, P> as ImgViewMut>::PixelsMut<'view_ref>;
+    type IntoIter = <ImgBufViewMut<'buffer_ref, P> as ImgMut>::PixelsMut<'view_ref>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.pixels_mut()

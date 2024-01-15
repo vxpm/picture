@@ -6,8 +6,8 @@ use std::io::Write;
 
 fn diff<I1, I2>(a: &I1, b: &I2) -> Rgba8Img
 where
-    I1: ImgView<Pixel = RGBA8>,
-    I2: ImgView<Pixel = RGBA8>,
+    I1: Img<Pixel = RGBA8>,
+    I2: Img<Pixel = RGBA8>,
 {
     assert!(a.dimensions() == b.dimensions());
 

@@ -1,5 +1,5 @@
 use crate::pixel::common::*;
-use crate::prelude::{ImgView, Pixel};
+use crate::prelude::{Img, Pixel};
 use crate::util::Array;
 use crate::{
     buffer::common::{Gray8Img, Graya8Img},
@@ -106,12 +106,11 @@ impl Default for PngEncoder {
 impl PngEncoder {
     pub fn encode<I>(self, view: I) -> Result<Vec<u8>, PngError>
     where
-        I: ImgView,
+        I: Img,
         I::Pixel: Pixel,
     {
-        let mut buffer: Vec<u8> = Vec::with_capacity(
-            view.size() * <<I::Pixel as Pixel>::Channels as Array>::SIZE,
-        );
+        let mut buffer: Vec<u8> =
+            Vec::with_capacity(view.size() * <<I::Pixel as Pixel>::Channels as Array>::SIZE);
 
         {
             let mut encoder = png::Encoder::new(
