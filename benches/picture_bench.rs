@@ -255,7 +255,7 @@ fn lanczos_upsample(c: &mut Criterion) {
 
 criterion_group! {
     name = benches;
-    config = Criterion::default().warm_up_time(std::time::Duration::from_secs_f32(3.0)).measurement_time(std::time::Duration::from_secs_f32(15.0)).sample_size(50);
+    config = Criterion::default().measurement_time(std::time::Duration::from_secs_f32(10f32));
     targets = diff, fractal, closest_match, lanczos_downsample, lanczos_upsample
 }
 criterion_main!(benches);
