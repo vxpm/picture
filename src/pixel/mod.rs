@@ -41,17 +41,17 @@ where
         channels
     }
 
-    #[inline]
+    #[inline(always)]
     fn channels(&self) -> &Self::Channels {
         self
     }
 
-    #[inline]
+    #[inline(always)]
     fn channels_mut(&mut self) -> &mut Self::Channels {
         self
     }
 
-    #[inline]
+    #[inline(always)]
     fn write_data<W>(&self, mut writer: W) -> std::io::Result<()>
     where
         W: std::io::Write,

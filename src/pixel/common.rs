@@ -1,40 +1,30 @@
 use super::Pixel;
 use crate::util::macros::count_tts;
+use bytemuck::{Pod, Zeroable};
 
 macro_rules! impl_pixel {
     ($pixel:ident => $($field:ident),+) => {
         impl<C> Pixel for $pixel<C>
         where
             [C; count_tts!($($field)+)]: bytemuck::NoUninit,
+            C: Pod,
         {
             type Channels = [C; count_tts!($($field)+)];
 
+            #[inline(always)]
             fn new(channels: Self::Channels) -> Self {
                 let [$($field),+] = channels;
                 Self { $($field),+ }
             }
 
-            #[inline]
+            #[inline(always)]
             fn channels(&self) -> &Self::Channels {
-                // SAFETY: this macro is only called on Repr(C) types with their channels
-                // as their only fields
-                unsafe {
-                    (self as *const Self)
-                        .cast::<Self::Channels>()
-                        .as_ref()
-                        .unwrap_unchecked()
-                }
+                bytemuck::cast_ref(self)
             }
 
-            #[inline]
+            #[inline(always)]
             fn channels_mut(&mut self) -> &mut Self::Channels {
-                // SAFETY: see above.
-                unsafe {
-                    (self as *mut Self)
-                        .cast::<Self::Channels>()
-                        .as_mut()
-                        .unwrap_unchecked()
-                }
+                bytemuck::cast_mut(self)
             }
 
             #[inline]
@@ -50,35 +40,24 @@ macro_rules! impl_pixel {
         impl<C> Pixel for $pixel<C>
         where
             [C; count_tts!($($field)+)]: bytemuck::NoUninit,
+            C: Pod,
         {
             type Channels = [C; count_tts!($($field)+)];
 
+            #[inline(always)]
             fn new(channels: Self::Channels) -> Self {
                 let [$($field),+] = channels;
                 Self($($field),+)
             }
 
-            #[inline]
+            #[inline(always)]
             fn channels(&self) -> &Self::Channels {
-                // SAFETY: this macro is only called on Repr(C) types with their channels
-                // as their only fields
-                unsafe {
-                    (self as *const Self)
-                        .cast::<Self::Channels>()
-                        .as_ref()
-                        .unwrap_unchecked()
-                }
+                bytemuck::cast_ref(self)
             }
 
-            #[inline]
+            #[inline(always)]
             fn channels_mut(&mut self) -> &mut Self::Channels {
-                // SAFETY: see above.
-                unsafe {
-                    (self as *mut Self)
-                        .cast::<Self::Channels>()
-                        .as_mut()
-                        .unwrap_unchecked()
-                }
+                bytemuck::cast_mut(self)
             }
 
             #[inline]
@@ -94,22 +73,20 @@ macro_rules! impl_pixel {
 
 macro_rules! gen_pixel {
     ($name:ident => $($field:ident),+) => {
-        #[derive(Debug, Clone, PartialEq, Eq, Default)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
         #[repr(C)]
         pub struct $name<C> {
-            $($field: C,)+
+            $(pub $field: C,)+
         }
+
+        // SAFETY: this is ok because the types being generated are effectively just arrays with
+        // named indexes, so if C is zeroable so is the type
+        unsafe impl<C> Zeroable for $name<C> where C: Zeroable {}
+
+        // SAFETY: same reasoning as above, just change zeroable for pod
+        unsafe impl<C> Pod for $name<C> where C: Pod {}
 
         impl_pixel!($name => $($field),+);
-    };
-    (tuple $name:ident => $($field:ident),+) => {
-        #[derive(Debug, Clone, PartialEq, Eq, Default)]
-        #[repr(C)]
-        pub struct $name<C> {
-            $($field: C,)+
-        }
-
-        impl_pixel!(tuple $name => $($field),+);
     };
 }
 
