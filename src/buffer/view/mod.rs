@@ -38,7 +38,7 @@ where
         C: Deref<Target = [P]>,
     {
         // SAFETY: 'buffer' is always not null since it's a reference.
-        let ptr = unsafe { NonNull::new_unchecked(buffer.as_ptr() as *mut P) };
+        let ptr = unsafe { NonNull::new_unchecked(buffer.data.as_ptr() as *mut P) };
 
         ImgBufView {
             ptr,

@@ -22,14 +22,14 @@ use view::{ImgBufView, ImgBufViewMut};
 ///
 /// `P` is it's pixel type and `C` it's container type.
 #[derive(Debug, Clone)]
-pub struct ImgBuf<P, C> {
+pub struct ImgBuf<P, C = Vec<P>> {
     width: u32,
     height: u32,
     data: C,
     _phantom: PhantomData<P>,
 }
 
-impl<P> ImgBuf<P, Vec<P>> {
+impl<P> ImgBuf<P> {
     /// Creates a new [`ImgBuf`] with the specified `width` and `height` from a function that generates pixels.
     pub fn from_fn<F>(width: u32, height: u32, f: F) -> Self
     where
@@ -44,7 +44,7 @@ impl<P> ImgBuf<P, Vec<P>> {
     }
 }
 
-impl<P> ImgBuf<P, Vec<P>>
+impl<P> ImgBuf<P>
 where
     P: Clone,
 {
@@ -88,7 +88,7 @@ where
     ///
     /// # Panics
     /// Panics if `container.len() != width * height`.
-    #[inline]
+    #[inline(always)]
     pub fn from_container(container: C, width: u32, height: u32) -> Self {
         assert_eq!(container.len(), checked_size(width, height));
         Self {
@@ -132,15 +132,6 @@ where
     #[inline]
     pub fn as_pixel_slice(&self) -> &[P] {
         &self.data
-    }
-
-    /// Returns a pointer to the first pixel of the image. All remaining pixels are subsequent in a row-major
-    /// (top-left to bottom-right) order.
-    ///
-    /// The returned pointer may be _dangling_, but it won't be _null_.
-    #[inline]
-    pub fn as_ptr(&self) -> *const P {
-        self.data.as_ptr()
     }
 }
 
