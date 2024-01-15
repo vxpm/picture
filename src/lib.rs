@@ -46,7 +46,7 @@ pub mod prelude {
     pub use view::{ImgView, ImgViewMut};
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(miri)))]
 mod tests {
     #[test]
     fn compile_tests() {

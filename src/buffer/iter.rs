@@ -58,7 +58,7 @@ impl<'buffer_ref, P> Iterator for PixelsWithCoords<'buffer_ref, P> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        let ret = self
+        let next = self
             .pixels
             .next()
             .map(|p| ((self.current_x, self.current_y), p));
@@ -69,7 +69,7 @@ impl<'buffer_ref, P> Iterator for PixelsWithCoords<'buffer_ref, P> {
             self.current_y += 1;
         }
 
-        ret
+        next
     }
 
     #[inline]
@@ -129,7 +129,7 @@ impl<'buffer_ref, P> Iterator for PixelsWithCoordsMut<'buffer_ref, P> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        let ret = self
+        let next = self
             .pixels
             .next()
             .map(|p| ((self.current_x, self.current_y), p));
@@ -140,7 +140,7 @@ impl<'buffer_ref, P> Iterator for PixelsWithCoordsMut<'buffer_ref, P> {
             self.current_y += 1;
         }
 
-        ret
+        next
     }
 
     #[inline]

@@ -12,6 +12,9 @@ rust-version = "1.65"
 repository = "https://github.com/vxpm/picture"
 exclude = ["examples/*", "compile-tests/*"]
 
+[profile.bench]
+debug = true
+
 [dev-dependencies]
 proptest = "1"
 trybuild = "1"
