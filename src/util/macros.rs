@@ -20,14 +20,3 @@ macro_rules! debug_assertions {
     }};
 }
 pub(crate) use debug_assertions;
-
-macro_rules! div_ceil {
-    ($a:expr, $b:expr) => {{
-        if $a == 0 {
-            0
-        } else {
-            ($a - 1) / $b + 1
-        }
-    }};
-}
-pub(crate) use div_ceil;

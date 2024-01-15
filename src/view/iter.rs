@@ -1,6 +1,5 @@
-use super::BlockOps;
-use crate::{pixel::Pixel, util::index_point, view::ImgView, Point};
-use std::{iter::FusedIterator, marker::PhantomData};
+use crate::{util::index_point, view::ImgView, Point};
+use std::iter::FusedIterator;
 
 /// Iterator over the pixels of an [`ImgView`] and their relative coordinates.
 #[derive(Debug, Clone)]
@@ -113,73 +112,3 @@ where
 
 impl<'view_ref, V> ExactSizeIterator for Pixels<'view_ref, V> where V: ImgView {}
 impl<'view_ref, V> FusedIterator for Pixels<'view_ref, V> where V: ImgView {}
-
-// TODO: better specify the behaviour of this iterator
-/// Iterator over block views of an [`ImgView`] and their relative coordinates.
-///
-/// While most blocks will have the specified dimensions, some might be smaller due to the original view dimensions
-/// not being exactly divisible.
-#[derive(Debug, Clone)]
-pub struct Blocks<'view_ref, P, V> {
-    view: &'view_ref V,
-    current_x: u32,
-    current_y: u32,
-    block_dimensions: (u32, u32),
-    _phantom: PhantomData<&'view_ref [P]>,
-}
-
-impl<'view_ref, P, V> Blocks<'view_ref, P, V>
-where
-    P: Pixel,
-    V: ImgView<Pixel = P>,
-{
-    #[inline]
-    pub fn new(view: &'view_ref V, block_dimensions: (u32, u32)) -> Self {
-        Self {
-            view,
-            current_x: 0,
-            current_y: 0,
-            block_dimensions,
-            _phantom: PhantomData,
-        }
-    }
-}
-
-impl<'view_ref, P, V> Iterator for Blocks<'view_ref, P, V>
-where
-    P: Pixel,
-    V: ImgView<Pixel = P>,
-{
-    type Item = (Point, V::View<'view_ref>);
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        let current_coords = (self.current_x, self.current_y);
-
-        let v = self
-            .view
-            .block(current_coords, self.block_dimensions)
-            .map(|p| (current_coords, p));
-
-        self.current_x += 1;
-        if self.current_x >= self.view.width_in_blocks(self.block_dimensions.0) {
-            self.current_x = 0;
-            self.current_y += 1;
-        }
-
-        v
-    }
-
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        // TODO: can be made into an exact hint but i'm too lazy
-        let size = (self.view.width_in_blocks(self.block_dimensions.0) as usize)
-            .checked_mul(self.view.height_in_blocks(self.block_dimensions.1) as usize)
-            .expect("size shouldn't overflow");
-
-        (0, Some(size))
-    }
-}
-
-#[rustfmt::skip]
-impl<'view_ref, P, V> FusedIterator for Blocks<'view_ref, P, V> where P: Pixel, V: ImgView<Pixel = P>, {}

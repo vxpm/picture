@@ -1,12 +1,7 @@
 /// Default iterator types.
 pub mod iter;
 
-use crate::{
-    buffer::ImgBuf,
-    pixel::Pixel,
-    util::{macros::div_ceil, Rect},
-    Point,
-};
+use crate::{buffer::ImgBuf, pixel::Pixel, util::Rect, Point};
 
 // types: ImgBuf, ImgBufView, ImgBufViewMut
 //
@@ -275,102 +270,3 @@ pub trait ImgViewMut: ImgView {
             .for_each(|(a, b)| std::mem::swap(a, b));
     }
 }
-
-/// Trait that extends [`ImgView`] with block-related methods.
-///
-/// ### What is a block?
-/// Imagine a grid of tiles with dimensions `block_dimensions` and origin at the top-left point
-/// of the view. A block is simply one of those tiles.
-/// Note that some blocks might be smaller than `block_dimensions` due to the dimensions of the
-/// view not being exactly divisible by it.
-pub trait BlockOps: ImgView {
-    /// Returns a block view into this view. If the block isn't contained in this view, returns `None`.
-    /// Note that `block_coords` is in block coordinates.
-    fn block(&self, block_coords: Point, block_dimensions: (u32, u32)) -> Option<Self::View<'_>> {
-        let top_left = (
-            block_coords.0 * block_dimensions.0,
-            block_coords.1 * block_dimensions.1,
-        );
-
-        if top_left.0 >= self.width() || top_left.1 >= self.height() {
-            return None;
-        }
-
-        let width = if top_left.0 + block_dimensions.0 > self.width() {
-            self.width() - top_left.0
-        } else {
-            block_dimensions.0
-        };
-
-        let height = if top_left.1 + block_dimensions.1 > self.height() {
-            self.height() - top_left.1
-        } else {
-            block_dimensions.1
-        };
-
-        self.view(Rect::new(top_left, (width, height)))
-    }
-
-    /// The width, in blocks, of this view.
-    #[inline]
-    fn width_in_blocks(&self, block_width: u32) -> u32 {
-        div_ceil!(self.width(), block_width)
-    }
-
-    /// The height, in blocks, of this view.
-    #[inline]
-    fn height_in_blocks(&self, block_height: u32) -> u32 {
-        div_ceil!(self.height(), block_height)
-    }
-
-    /// The dimensions, in blocks, of this view. Equivalent to `(width_in_blocks, height_in_blocks)`.
-    #[inline]
-    fn dimensions_in_blocks(&self, block_dimensions: (u32, u32)) -> (u32, u32) {
-        (
-            self.width_in_blocks(block_dimensions.0),
-            self.height_in_blocks(block_dimensions.1),
-        )
-    }
-
-    /// The size, in blocks, of this view. Equivalent to `width_in_blocks * height_in_blocks`.
-    #[inline]
-    fn size_in_blocks(&self, block_dimensions: (u32, u32)) -> u32 {
-        self.width_in_blocks(block_dimensions.0) * self.height_in_blocks(block_dimensions.1)
-    }
-}
-
-impl<I> BlockOps for I where I: ImgView {}
-
-/// Trait that extends [`ImgViewMut`] with mutable block-related methods.
-///
-/// See [`BlockOps`] for more information.
-pub trait BlockOpsMut: BlockOps + ImgViewMut {
-    /// Returns a mutable block view into this view. If the block isn't contained in this view, returns `None`.
-    /// Note that `block_coords` is in block coordinates.
-    fn block_mut(
-        &mut self,
-        block_coords: Point,
-        block_dimensions: (u32, u32),
-    ) -> Option<Self::ViewMut<'_>> {
-        let top_left = (
-            block_coords.0 * block_dimensions.0,
-            block_coords.1 * block_dimensions.1,
-        );
-
-        let width = if top_left.0 + block_dimensions.0 > self.width() {
-            self.width() - top_left.0
-        } else {
-            block_dimensions.0
-        };
-
-        let height = if top_left.1 + block_dimensions.1 > self.height() {
-            self.height() - top_left.1
-        } else {
-            block_dimensions.1
-        };
-
-        self.view_mut(Rect::new(top_left, (width, height)))
-    }
-}
-
-impl<I> BlockOpsMut for I where I: ImgViewMut {}
