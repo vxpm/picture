@@ -50,7 +50,7 @@ impl_processable!(u8, u16, u32, u64, u128, i8, i16, i32, i64, i128, f32, f64, us
 #[must_use = "the resampled buffer is returned and the original view is left unmodified"]
 pub fn resample_horizontal<I, P, C, F, const N: usize>(
     view: &I,
-    width: u32,
+    new_width: u32,
     filter: F,
     window: f32,
 ) -> ImgBuf<P, Vec<P>>
@@ -60,17 +60,17 @@ where
     C: Processable,
     F: Fn(f32) -> f32,
 {
-    if width == 0 {
-        return ImgBuf::from_container(Vec::new(), width, view.height());
+    if new_width == 0 {
+        return ImgBuf::from_container(Vec::new(), new_width, view.height());
     }
 
     // create container for result
-    let container_size = checked_size(width, view.height());
+    let container_size = checked_size(new_width, view.height());
     let mut container = Vec::with_capacity(container_size);
     let container_pixels = container.spare_capacity_mut();
 
     // find the ratio between the source width and the target width
-    let ratio = view.width() as f32 / width as f32;
+    let ratio = view.width() as f32 / new_width as f32;
     let sampling_ratio = ratio.max(1.0);
     let inverse_sampling_ratio = 1.0 / sampling_ratio;
 
@@ -84,17 +84,18 @@ where
     let window = window * sampling_ratio;
 
     // precalculate weights
+    let offset_constant = 0.5 * (ratio - 1.0);
     let max_src_x_f32 = (view.width() - 1) as f32;
-    let mut weights = Vec::with_capacity((2 * (window as usize) + 1) * (width as usize));
-    let mut weights_start_index = Vec::with_capacity(width as usize);
-    for target_x in 0..width {
-        let equivalent_src_x = target_x as f32 * ratio + 0.5 * (ratio - 1.0);
+    let mut weights = Vec::with_capacity((2 * (window as usize) + 1) * (new_width as usize));
+    let mut weights_start_index = Vec::with_capacity(new_width as usize);
+    for target_x in 0..new_width {
+        let equivalent_src_x = target_x as f32 * ratio + offset_constant;
 
         let left_src_pixel_x = (equivalent_src_x - window).clamp(0.0, max_src_x_f32) as u32;
         let right_src_pixel_x = (equivalent_src_x + window).clamp(0.0, max_src_x_f32) as u32;
 
         weights_start_index.push(weights.len());
-        for src_pixel_x in left_src_pixel_x..=right_src_pixel_x {
+        for src_pixel_x in left_src_pixel_x..(right_src_pixel_x + 1) {
             weights.push(filter(
                 (src_pixel_x as f32 - equivalent_src_x) * inverse_sampling_ratio,
             ));
@@ -102,10 +103,11 @@ where
     }
 
     // now actually resample
-    for target_x in 0..width {
+    let weights = weights.as_slice();
+    for target_x in 0..new_width {
         // these could be cached as well, but it makes no performance difference (and increases
         // memory usage), so we just calculate them again
-        let equivalent_src_x = target_x as f32 * ratio + (1.0 - 1.0 / ratio) / (2.0 / ratio);
+        let equivalent_src_x = target_x as f32 * ratio + offset_constant;
 
         let min_src_pixel_x = (equivalent_src_x - window).clamp(0.0, max_src_x_f32) as u32;
         let max_src_pixel_x = (equivalent_src_x + window).clamp(0.0, max_src_x_f32) as u32;
@@ -114,7 +116,7 @@ where
         for target_y in 0..view.height() {
             let mut weight_sum = 0f32;
             let mut channel_value_sum = [0f32; N];
-            for (index, src_pixel_x) in (min_src_pixel_x..=max_src_pixel_x).enumerate() {
+            for (index, src_pixel_x) in (min_src_pixel_x..max_src_pixel_x + 1).enumerate() {
                 // SAFETY: target_y is in the 0..img.height() range and src_pixel_x is clamped
                 // between 0 and img.width() - 1. therefore, this coordinate is always in bounds.
                 let src_pixel = unsafe { view.pixel_unchecked((src_pixel_x, target_y)) };
@@ -122,9 +124,9 @@ where
                 let weight = weights[weights_start + index];
                 weight_sum += weight;
 
-                for channel_index in 0..N {
-                    let value = weight * channels[channel_index].to_f32();
-                    channel_value_sum[channel_index] += value;
+                for (sum, channel) in channel_value_sum.iter_mut().zip(channels.iter()) {
+                    let value = weight * channel.to_f32();
+                    *sum += value;
                 }
             }
 
@@ -134,7 +136,7 @@ where
             // the correct range.
             unsafe {
                 container_pixels
-                    .get_unchecked_mut(index_point((target_x, target_y), width))
+                    .get_unchecked_mut(index_point((target_x, target_y), new_width))
                     .write(P::new(result));
             }
         }
@@ -145,7 +147,7 @@ where
         container.set_len(container_size);
     }
 
-    ImgBuf::from_container(container, width, view.height())
+    ImgBuf::from_container(container, new_width, view.height())
 }
 
 /// Resamples a view vertically to the given height using the given filter.
@@ -156,7 +158,7 @@ where
 #[must_use = "the resampled buffer is returned and the original view is left unmodified"]
 pub fn resample_vertical<I, P, C, F, const N: usize>(
     view: &I,
-    height: u32,
+    new_height: u32,
     filter: F,
     window: f32,
 ) -> ImgBuf<P, Vec<P>>
@@ -166,17 +168,17 @@ where
     C: Processable,
     F: Fn(f32) -> f32,
 {
-    if height == 0 {
-        return ImgBuf::from_container(Vec::new(), view.width(), height);
+    if new_height == 0 {
+        return ImgBuf::from_container(Vec::new(), view.width(), new_height);
     }
 
     // create container for result
-    let container_size = checked_size(view.width(), height);
+    let container_size = checked_size(view.width(), new_height);
     let mut container = Vec::with_capacity(container_size);
     let container_pixels = container.spare_capacity_mut();
 
     // find the ratio between the source height and the target height
-    let ratio = view.height() as f32 / height as f32;
+    let ratio = view.height() as f32 / new_height as f32;
     let sampling_ratio = ratio.max(1.0);
     let inverse_sampling_ratio = 1.0 / sampling_ratio;
 
@@ -190,17 +192,18 @@ where
     let window = window * sampling_ratio;
 
     // precalculate weights
+    let offset_constant = 0.5 * (ratio - 1.0);
     let max_src_y_f32 = (view.height() - 1) as f32;
-    let mut weights = Vec::with_capacity((2 * (window as usize) + 1) * (height as usize));
-    let mut weights_start_index = Vec::with_capacity(height as usize);
-    for target_y in 0..height {
-        let equivalent_src_y = target_y as f32 * ratio + 0.5 * (ratio - 1.0);
+    let mut weights = Vec::with_capacity((2 * (window as usize) + 1) * (new_height as usize));
+    let mut weights_start_index = Vec::with_capacity(new_height as usize);
+    for target_y in 0..new_height {
+        let equivalent_src_y = target_y as f32 * ratio + offset_constant;
 
         let min_src_pixel_y = (equivalent_src_y - window).clamp(0.0, max_src_y_f32) as u32;
         let max_src_pixel_y = (equivalent_src_y + window).clamp(0.0, max_src_y_f32) as u32;
 
         weights_start_index.push(weights.len());
-        for src_pixel_y in min_src_pixel_y..=max_src_pixel_y {
+        for src_pixel_y in min_src_pixel_y..(max_src_pixel_y + 1) {
             weights.push(filter(
                 (src_pixel_y as f32 - equivalent_src_y) * inverse_sampling_ratio,
             ));
@@ -208,10 +211,11 @@ where
     }
 
     // now actually resample
-    for target_y in 0..height {
+    let weights = weights.as_slice();
+    for target_y in 0..new_height {
         // these could be cached as well, but it makes no performance difference (and increases
         // memory usage), so we just calculate them again
-        let equivalent_src_y = target_y as f32 * ratio + 0.5 * (ratio - 1.0);
+        let equivalent_src_y = target_y as f32 * ratio + offset_constant;
 
         let min_src_pixel_y = (equivalent_src_y - window).clamp(0.0, max_src_y_f32) as u32;
         let max_src_pixel_y = (equivalent_src_y + window).clamp(0.0, max_src_y_f32) as u32;
@@ -220,7 +224,7 @@ where
         for target_x in 0..view.width() {
             let mut weight_sum = 0f32;
             let mut channel_value_sum = [0f32; N];
-            for (index, src_pixel_y) in (min_src_pixel_y..=max_src_pixel_y).enumerate() {
+            for (index, src_pixel_y) in (min_src_pixel_y..max_src_pixel_y + 1).enumerate() {
                 // SAFETY: target_x is in the 0..img.width() range and src_pixel_y is clamped
                 // between 0 and img.height() - 1. therefore, this coordinate is always in bounds.
                 let src_pixel = unsafe { view.pixel_unchecked((target_x, src_pixel_y)) };
@@ -228,9 +232,9 @@ where
                 let weight = weights[weights_start + index];
                 weight_sum += weight;
 
-                for channel_index in 0..N {
-                    let value = weight * channels[channel_index].to_f32();
-                    channel_value_sum[channel_index] += value;
+                for (sum, channel) in channel_value_sum.iter_mut().zip(channels.iter()) {
+                    let value = weight * channel.to_f32();
+                    *sum += value;
                 }
             }
 
@@ -251,7 +255,7 @@ where
         container.set_len(container_size);
     }
 
-    ImgBuf::from_container(container, view.width(), height)
+    ImgBuf::from_container(container, view.width(), new_height)
 }
 
 /// Resamples a view to the given dimensions using the given filter. This is
@@ -262,7 +266,7 @@ where
 #[must_use = "the resampled buffer is returned and the original view is left unmodified"]
 pub fn resample<I, P, C, F, const N: usize>(
     view: &I,
-    (width, height): (u32, u32),
+    dimensions: (u32, u32),
     filter: F,
     window: f32,
 ) -> ImgBuf<P, Vec<P>>
@@ -272,6 +276,7 @@ where
     C: Processable,
     F: Fn(f32) -> f32,
 {
+    let (width, height) = dimensions;
     let horizontal = resample_horizontal(view, width, &filter, window);
     resample_vertical(&horizontal, height, filter, window)
 }
