@@ -88,6 +88,7 @@ pub trait ImgView {
 
     /// Returns multiple views into this view. If any of the bounds don't fit in this view, returns `None`.
     fn view_multiple<const N: usize>(&self, bounds: [Rect; N]) -> Option<[Self::View<'_>; N]> {
+        // NOTE: waiting on `try_map` for arrays to be stabilized...
         let result: Option<arrayvec::ArrayVec<Self::View<'_>, N>> =
             bounds.into_iter().map(|b| self.view(b)).collect();
 
@@ -107,16 +108,8 @@ pub trait ImgView {
         &self,
         bounds: [Rect; N],
     ) -> [Self::View<'_>; N] {
-        let result: arrayvec::ArrayVec<Self::View<'_>, N> = bounds
-            .into_iter()
-            // SAFETY: we trust the caller!
-            .map(|b| unsafe { self.view_unchecked(b) })
-            .collect();
-
-        debug_assert_eq!(result.len(), result.capacity());
-        // SAFETY: safe because the 'bounds' array and the inner array of the 'result'
-        // have the same length: N
-        unsafe { result.into_inner_unchecked() }
+        // SAFETY: we trust the caller!
+        bounds.map(|b| unsafe { self.view_unchecked(b) })
     }
 
     /// Splits this view into two disjoint views, separated at the given x coordinate.

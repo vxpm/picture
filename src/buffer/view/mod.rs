@@ -306,16 +306,8 @@ where
         &mut self,
         bounds: [Rect; N],
     ) -> [Self::ViewMut<'_>; N] {
-        let result: arrayvec::ArrayVec<Self::ViewMut<'_>, N> = bounds
-            .into_iter()
-            // SAFETY: we trust the caller!
-            .map(|b| unsafe { ImgBufViewMut::from_ptr(self.ptr, self.buffer_width, b) })
-            .collect();
-
-        result
-            .into_inner()
-            .ok()
-            .expect("Inner result array and bounds array should have the same length")
+        // SAFETY: we trust the caller!
+        bounds.map(|b| unsafe { ImgBufViewMut::from_ptr(self.ptr, self.buffer_width, b) })
     }
 
     fn split_x_at_mut(&mut self, mid: u32) -> Option<(Self::ViewMut<'_>, Self::ViewMut<'_>)> {
