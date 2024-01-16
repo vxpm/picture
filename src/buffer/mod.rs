@@ -377,3 +377,36 @@ where
         self.pixels_mut()
     }
 }
+
+#[cfg(test)]
+impl<P> proptest::arbitrary::Arbitrary for ImgBuf<P>
+where
+    P: Pixel + Default + Clone + std::fmt::Debug,
+{
+    type Parameters = ();
+    type Strategy = proptest::strategy::BoxedStrategy<Self>;
+
+    fn arbitrary_with(_: Self::Parameters) -> Self::Strategy {
+        use proptest::prelude::*;
+        const ALLOWED_DIMENSION_RANGE: std::ops::Range<u32> = 0..4096;
+
+        let dimensions_strat = (ALLOWED_DIMENSION_RANGE, ALLOWED_DIMENSION_RANGE);
+
+        let raw_strat = dimensions_strat.prop_map(|(width, height)| {
+            (
+                (width, height),
+                proptest::collection::vec(
+                    proptest::strategy::Just(P::default()),
+                    (width * height) as usize,
+                ),
+            )
+        });
+
+        let buf_strat = raw_strat.prop_flat_map(|((width, height), container_strat)| {
+            container_strat
+                .prop_map(move |container| ImgBuf::from_container(container, width, height))
+        });
+
+        buf_strat.boxed()
+    }
+}

@@ -93,9 +93,10 @@ impl<'buffer_ref, P> Iterator for PixelsWithCoords<'buffer_ref, P> {
 
 impl<'buffer_ref, P> ExactSizeIterator for PixelsWithCoords<'buffer_ref, P> {}
 impl<'buffer_ref, P> FusedIterator for PixelsWithCoords<'buffer_ref, P> {}
-#[cfg(feature = "unstable")]
+
 // SAFETY: since PixelsWithCoords is just a wrapper around Pixels, and Pixels
 // implements TrustedLen, PixelsWithCoords can be TrustedLen as well!
+#[cfg(feature = "unstable")]
 unsafe impl<'buffer_ref, P> TrustedLen for PixelsWithCoords<'buffer_ref, P> {}
 
 /// Mutable iterator over the pixels of a [`ImgBuf`] with their respective coordinates.
@@ -164,7 +165,8 @@ impl<'buffer_ref, P> Iterator for PixelsWithCoordsMut<'buffer_ref, P> {
 
 impl<'buffer_ref, P> ExactSizeIterator for PixelsWithCoordsMut<'buffer_ref, P> {}
 impl<'buffer_ref, P> FusedIterator for PixelsWithCoordsMut<'buffer_ref, P> {}
-#[cfg(feature = "unstable")]
+
 // SAFETY: since PixelsWithCoordsMut is just a wrapper around PixelsMut, and PixelsMut
 // implements TrustedLen, PixelsWithCoordsMut can be TrustedLen as well!
+#[cfg(feature = "unstable")]
 unsafe impl<'buffer_ref, P> TrustedLen for PixelsWithCoordsMut<'buffer_ref, P> {}
