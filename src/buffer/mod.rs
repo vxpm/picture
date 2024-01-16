@@ -7,9 +7,9 @@ pub mod view;
 
 use crate::{
     pixel::Pixel,
-    util::{checked_size, index_point, macros::debug_assertions, Rect},
+    util::{checked_size, index_point, macros::debug_assertions},
     view::{Img, ImgMut},
-    Point,
+    Point, Rect,
 };
 use std::{
     marker::PhantomData,

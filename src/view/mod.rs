@@ -1,7 +1,7 @@
 /// Default iterator types.
 pub mod iter;
 
-use crate::{buffer::ImgBuf, pixel::Pixel, util::Rect, Point};
+use crate::{buffer::ImgBuf, pixel::Pixel, Point, Rect};
 
 /// Trait for types that can be treated as a view into some image.
 pub trait Img {

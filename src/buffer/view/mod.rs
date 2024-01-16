@@ -1,9 +1,9 @@
 use super::ImgBuf;
 use crate::{
     pixel::Pixel,
-    util::{index_point, Rect},
+    util::index_point,
     view::{self, Img, ImgMut},
-    Point,
+    Point, Rect,
 };
 use std::{
     marker::PhantomData,
