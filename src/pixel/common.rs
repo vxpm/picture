@@ -26,14 +26,6 @@ macro_rules! impl_pixel {
             fn channels_mut(&mut self) -> &mut Self::Channels {
                 bytemuck::cast_mut(self)
             }
-
-            #[inline]
-            fn write_data<W>(&self, writer: W) -> std::io::Result<()>
-            where
-                W: std::io::Write,
-            {
-                self.channels().write_data(writer)
-            }
         }
     };
     (tuple $pixel:ident => $($field:ident),+) => {
@@ -58,14 +50,6 @@ macro_rules! impl_pixel {
             #[inline(always)]
             fn channels_mut(&mut self) -> &mut Self::Channels {
                 bytemuck::cast_mut(self)
-            }
-
-            #[inline]
-            fn write_data<W>(&self, writer: W) -> std::io::Result<()>
-            where
-                W: std::io::Write,
-            {
-                self.channels().write_data(writer)
             }
         }
     };

@@ -5,6 +5,7 @@ use crate::{
     buffer::common::{Gray8Img, Graya8Img},
     prelude::{Rgb8Img, Rgba8Img},
 };
+use std::io::Write;
 use std::{io::Read, path::Path};
 use thiserror::Error;
 
@@ -22,7 +23,7 @@ pub enum PngError {
     #[error("PNG is indexed - unsupported")]
     Indexed,
     #[error("unsupported channel amount: {0}")]
-    UnsupportedChannelAmount(usize),
+    UnsupportedChannelCount(usize),
 }
 
 pub enum PngImage {
@@ -107,7 +108,7 @@ impl PngEncoder {
     pub fn encode<I>(self, view: I) -> Result<Vec<u8>, PngError>
     where
         I: Img,
-        I::Pixel: Pixel,
+        I::Pixel: Pixel + bytemuck::Pod,
     {
         let mut buffer: Vec<u8> =
             Vec::with_capacity(view.size() * <<I::Pixel as Pixel>::Channels as Array>::SIZE);
@@ -127,7 +128,7 @@ impl PngEncoder {
                     2 => encoder.set_color(png::ColorType::GrayscaleAlpha),
                     3 => encoder.set_color(png::ColorType::Rgb),
                     4 => encoder.set_color(png::ColorType::Rgba),
-                    x => return Err(PngError::UnsupportedChannelAmount(x)),
+                    x => return Err(PngError::UnsupportedChannelCount(x)),
                 }
             }
 
@@ -135,8 +136,11 @@ impl PngEncoder {
 
             let mut writer = encoder.write_header()?;
             let mut writer = writer.stream_writer()?;
-            view.write_data(&mut writer)
-                .map_err(png::EncodingError::IoError)?;
+            for pixel in view.pixels() {
+                writer
+                    .write(bytemuck::bytes_of(pixel))
+                    .map_err(png::EncodingError::IoError)?;
+            }
 
             writer.finish()?;
         }

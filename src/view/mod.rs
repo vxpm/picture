@@ -121,20 +121,6 @@ pub trait Img {
             .and_then(|upper| self.view(lower_bounds).map(|lower| (upper, lower)))
     }
 
-    /// Writes the data of each pixel to a [writer][std::io::Write] in a row-major (top-left to bottom-right)
-    /// order.
-    #[inline]
-    fn write_data<W>(&self, mut writer: W) -> std::io::Result<()>
-    where
-        W: std::io::Write,
-    {
-        for pixel in self.pixels() {
-            pixel.write_data(&mut writer)?;
-        }
-
-        Ok(())
-    }
-
     /// Creates an [`ImgBuf`] from this view with [`Vec`] as it's container.
     #[inline]
     fn to_buffer(&self) -> ImgBuf<Self::Pixel, Vec<Self::Pixel>>

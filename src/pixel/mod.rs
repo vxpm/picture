@@ -24,11 +24,6 @@ pub trait Pixel {
 
     /// Returns a mutable reference to the channels of this pixel.
     fn channels_mut(&mut self) -> &mut Self::Channels;
-
-    /// Writes the data of this pixel to a [writer][std::io::Write].
-    fn write_data<W>(&self, writer: W) -> std::io::Result<()>
-    where
-        W: std::io::Write;
 }
 
 impl<T, const SIZE: usize> Pixel for [T; SIZE]
@@ -49,13 +44,5 @@ where
     #[inline(always)]
     fn channels_mut(&mut self) -> &mut Self::Channels {
         self
-    }
-
-    #[inline(always)]
-    fn write_data<W>(&self, mut writer: W) -> std::io::Result<()>
-    where
-        W: std::io::Write,
-    {
-        writer.write_all(bytemuck::bytes_of(self))
     }
 }
