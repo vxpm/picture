@@ -37,8 +37,8 @@ where
     where
         C: Deref<Target = [P]>,
     {
-        // SAFETY: 'buffer' is always not null since it's a reference.
-        let ptr = unsafe { NonNull::new_unchecked(buffer.data.as_ptr() as *mut P) };
+        let ptr = NonNull::new(buffer.data.as_ptr() as *mut P)
+            .expect("slice reference is always non-null");
 
         ImgBufView {
             ptr,

@@ -163,9 +163,7 @@ where
     /// The returned pointer may be _dangling_, but it won't be _null_.
     #[inline]
     pub fn as_mut_ptr(&mut self) -> NonNull<P> {
-        // SAFETY: safe because internally 'as_mut_ptr' is a method on a slice reference, which
-        // is always not null. it may be dangling, but it isn't null.
-        unsafe { NonNull::new_unchecked(self.data.as_mut_ptr()) }
+        NonNull::new(self.data.as_mut_ptr()).expect("slice reference is always non-null")
     }
 }
 
