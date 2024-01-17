@@ -35,15 +35,12 @@ paste = "1"
 rgb = "0.8"
 arrayvec = "0.7"
 thiserror = "1"
-qoi = { version = "0.4", optional = true }
-either = { version = "1.8", optional = true }
 png = { version = "0.17", optional = true }
 
 [features]
-default = ["qoi", "png"]
+default = ["png"]
 unstable = []
 formats = []
 
 # formats
-qoi = ["formats", "dep:qoi", "dep:either"]
 png = ["formats", "dep:png"]
