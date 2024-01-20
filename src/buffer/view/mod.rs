@@ -63,7 +63,6 @@ where
     type Pixels<'self_ref> = view::iter::Pixels<'self_ref, Self>
     where
         Self: 'self_ref;
-
     type View<'self_ref> = Self
     where
         Self: 'self_ref;
@@ -104,6 +103,12 @@ where
     fn pixels(&self) -> Self::Pixels<'_> {
         Self::Pixels::new(self)
     }
+
+    // TODO: this can be optimized to iterate over the rows of the view!
+    // #[inline]
+    // fn pixel_chunks(&self) -> impl Iterator<Item = &'_ [P]> {
+    //     todo!()
+    // }
 
     #[inline]
     unsafe fn view_unchecked(&self, bounds: Rect) -> Self::View<'_> {
@@ -241,6 +246,12 @@ where
     fn pixels(&self) -> Self::Pixels<'_> {
         Self::Pixels::new(self)
     }
+
+    // TODO: this can be optimized to iterate over the rows of the view!
+    // #[inline]
+    // fn pixel_chunks(&self) -> impl Iterator<Item = &'_ [P]> {
+    //     todo!()
+    // }
 
     #[inline]
     unsafe fn view_unchecked(&self, bounds: Rect) -> Self::View<'_> {

@@ -60,6 +60,15 @@ pub trait Img {
     /// Returns an iterator over the pixels of this view.
     fn pixels(&self) -> Self::Pixels<'_>;
 
+    /// Returns an iterator over chunks of pixels of this view.
+    ///
+    /// Essentially, this is just like [`Img::pixels`] but instead of iterating over individual pixels
+    /// it iterates over slices of pixels with as many pixels as possible.
+    #[inline]
+    fn pixel_chunks(&self) -> impl Iterator<Item = &'_ [Self::Pixel]> {
+        self.pixels().map(|x| std::slice::from_ref(x))
+    }
+
     /// Returns a view into this view. If the bounds don't fit in this view, returns `None`.
     #[inline]
     fn view(&self, bounds: Rect) -> Option<Self::View<'_>> {

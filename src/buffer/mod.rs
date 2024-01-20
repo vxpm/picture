@@ -202,7 +202,6 @@ where
     type Pixels<'buffer_ref> = iter::Pixels<'buffer_ref, Self::Pixel>
     where
         Self: 'buffer_ref;
-
     type View<'buffer_ref> = ImgBufView<'buffer_ref, Self::Pixel>
     where
         Self::Pixel: 'buffer_ref,
@@ -239,6 +238,11 @@ where
     #[inline]
     fn pixels(&self) -> Self::Pixels<'_> {
         self.as_pixel_slice().iter()
+    }
+
+    #[inline]
+    fn pixel_chunks(&self) -> impl Iterator<Item = &'_ [Self::Pixel]> {
+        std::iter::once(self.as_pixel_slice())
     }
 
     #[inline]
