@@ -30,7 +30,7 @@ name = "picture_bench"
 harness = false
 
 [dependencies]
-bytemuck = "1.14"
+bytemuck = { version = "1.14", features = ["must_cast"] }
 paste = "1"
 rgb = "0.8"
 arrayvec = "0.7"

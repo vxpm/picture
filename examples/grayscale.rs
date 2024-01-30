@@ -1,10 +1,10 @@
 use picture::{
-    formats::png::{PngDecoder, PngEncoder, PngImage},
+    buffer::common::CommonImgBuf,
+    formats::{png::Encoder, ImgEncoder},
     prelude::*,
 };
-use std::io::Write;
 
-fn grayscale<I1>(img: &mut I1)
+fn make_grayscale<I1>(img: &mut I1)
 where
     I1: ImgMut<Pixel = RGB8>,
 {
@@ -17,17 +17,13 @@ where
 }
 
 fn main() {
-    let image = PngDecoder
-        .decode_from_path("examples/images/colorful.png")
-        .unwrap();
-
-    let PngImage::Rgb(mut image) = image else {
+    let colorful = picture::open("examples/images/colorful.png").unwrap();
+    let CommonImgBuf::Rgb8(mut colorful) = colorful else {
         unreachable!()
     };
 
-    grayscale(&mut image);
+    make_grayscale(&mut colorful);
 
-    let encoded = PngEncoder::default().encode(image).unwrap();
-    let mut f = std::fs::File::create("examples/images/out_grayscale.png").unwrap();
-    f.write_all(&encoded[..]).unwrap();
+    let file = std::fs::File::create("examples/images/out_grayscale.png").unwrap();
+    Encoder::default().encode(file, colorful).unwrap();
 }

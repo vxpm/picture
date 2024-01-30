@@ -1,5 +1,7 @@
-use picture::{formats::png::PngEncoder, prelude::*};
-use std::io::Write;
+use picture::{
+    formats::{png::Encoder, ImgEncoder},
+    prelude::*,
+};
 
 fn main() {
     // based on the fractal example of the 'image' crate
@@ -29,7 +31,6 @@ fn main() {
         };
     }
 
-    let encoded = PngEncoder::default().encode(img).unwrap();
-    let mut f = std::fs::File::create("examples/images/out_frac.png").unwrap();
-    f.write_all(&encoded[..]).unwrap();
+    let file = std::fs::File::create("examples/images/out_fractal.png").unwrap();
+    Encoder::default().encode(file, img).unwrap();
 }

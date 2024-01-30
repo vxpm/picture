@@ -1,9 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use image::GenericImageView;
-use picture::{
-    formats::png::{PngDecoder, PngImage},
-    prelude::*,
-};
+use picture::{buffer::common::CommonImgBuf, prelude::*};
 
 #[inline]
 fn picture_fractal((width, height): (u32, u32)) -> Rgb8Img {
@@ -188,11 +185,8 @@ fn closest_match(c: &mut Criterion) {
 }
 
 fn lanczos_downsample(c: &mut Criterion) {
-    let picture_img = PngDecoder
-        .decode_from_path("examples/images/space.png")
-        .unwrap();
-
-    let PngImage::Rgb(picture_img) = picture_img else {
+    let picture_img = picture::open("examples/images/space.png").unwrap();
+    let CommonImgBuf::Rgb8(picture_img) = picture_img else {
         unreachable!()
     };
 
@@ -221,11 +215,8 @@ fn lanczos_downsample(c: &mut Criterion) {
 }
 
 fn lanczos_upsample(c: &mut Criterion) {
-    let picture_img = PngDecoder
-        .decode_from_path("examples/images/colorful.png")
-        .unwrap();
-
-    let PngImage::Rgb(picture_img) = picture_img else {
+    let picture_img = picture::open("examples/images/colorful.png").unwrap();
+    let CommonImgBuf::Rgb8(picture_img) = picture_img else {
         unreachable!()
     };
 

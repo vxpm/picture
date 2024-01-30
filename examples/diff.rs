@@ -1,8 +1,8 @@
 use picture::{
-    formats::png::{PngDecoder, PngEncoder, PngImage},
+    buffer::common::CommonImgBuf,
+    formats::{png::Encoder, ImgEncoder},
     prelude::*,
 };
-use std::io::Write;
 
 fn diff<I1, I2>(a: &I1, b: &I2) -> Rgba8Img
 where
@@ -25,23 +25,16 @@ where
 }
 
 fn main() {
-    let star = PngDecoder
-        .decode_from_path("examples/images/star.png")
-        .unwrap();
-    let rainbow = PngDecoder
-        .decode_from_path("examples/images/rainbow.png")
-        .unwrap();
-
-    let PngImage::Rgba(star) = star else {
+    let star = picture::open("examples/images/star.png").unwrap();
+    let CommonImgBuf::Rgba8(star) = star else {
         unreachable!()
     };
-
-    let PngImage::Rgba(rainbow) = rainbow else {
+    let rainbow = picture::open("examples/images/rainbow.png").unwrap();
+    let CommonImgBuf::Rgba8(rainbow) = rainbow else {
         unreachable!()
     };
 
     let diff = diff(&star, &rainbow);
-    let encoded = PngEncoder::default().encode(diff).unwrap();
-    let mut f = std::fs::File::create("examples/images/out_diff.png").unwrap();
-    f.write_all(&encoded[..]).unwrap();
+    let file = std::fs::File::create("examples/images/out_diff.png").unwrap();
+    Encoder::default().encode(file, diff).unwrap();
 }

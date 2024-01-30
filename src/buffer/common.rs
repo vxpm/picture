@@ -1,21 +1,31 @@
 use super::ImgBuf;
 use crate::pixel::common::*;
 
-macro_rules! img_ty {
-    ($pixel:ident) => {
+macro_rules! buf_types {
+    ($($pixel:ident),*) => {
         paste::paste! {
-            pub type [<$pixel:camel Img>] = ImgBuf<$pixel, Vec<$pixel>>;
+            $(
+                pub type [<$pixel:camel Img>] = ImgBuf<$pixel, Vec<$pixel>>;
+            )*
+
+            pub enum CommonImgBuf {
+                $(
+                    [<$pixel:camel>]([<$pixel:camel Img>]),
+                )*
+            }
         }
     };
 }
 
-img_ty!(RGB8);
-img_ty!(RGBA8);
-img_ty!(RGB16);
-img_ty!(RGBA16);
-img_ty!(BGR8);
-img_ty!(BGR16);
-img_ty!(GRAY8);
-img_ty!(GRAYA8);
-img_ty!(GRAY16);
-img_ty!(GRAYA16);
+buf_types! {
+    RGB8,
+    RGBA8,
+    RGB16,
+    RGBA16,
+    BGR8,
+    BGR16,
+    GRAY8,
+    GRAYA8,
+    GRAY16,
+    GRAYA16
+}

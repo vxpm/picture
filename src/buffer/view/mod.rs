@@ -37,7 +37,7 @@ where
     where
         C: Deref<Target = [P]>,
     {
-        let ptr = NonNull::new(buffer.data.as_ptr() as *mut P)
+        let ptr = NonNull::new(buffer.data.as_ptr().cast_mut())
             .expect("slice reference is always non-null");
 
         ImgBufView {
@@ -88,7 +88,7 @@ where
 
         let buffer_coords = self.bounds.abs_point_from_relative(coords);
         let index = index_point(buffer_coords, self.buffer_width);
-        let ptr = self.ptr.as_ptr() as *const Self::Pixel;
+        let ptr = self.ptr.as_ptr();
 
         // SAFETY: assuming 'bounds' is a valid rect for this buffer, that is, it's contained within
         // the bounds of the buffer, the relative position being in 'bounds' means that 'index' is within
@@ -229,7 +229,7 @@ where
 
         let buffer_coords = self.bounds.abs_point_from_relative(coords);
         let index = index_point(buffer_coords, self.buffer_width);
-        let ptr = self.ptr.as_ptr() as *const Self::Pixel;
+        let ptr = self.ptr.as_ptr();
 
         // SAFETY: assuming 'bounds' is a valid rect for this buffer, that is, it's contained within
         // the bounds of the buffer, the relative position being in 'bounds' means that 'index' is within

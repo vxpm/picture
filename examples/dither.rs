@@ -1,8 +1,8 @@
 use picture::{
-    formats::png::{PngDecoder, PngEncoder, PngImage},
+    buffer::common::CommonImgBuf,
+    formats::{png::Encoder, ImgEncoder},
     prelude::*,
 };
-use std::io::Write;
 
 // error diffusion dithering
 fn dither<I1>(img: &mut I1)
@@ -41,17 +41,13 @@ where
 }
 
 fn main() {
-    let image = PngDecoder
-        .decode_from_path("examples/images/space.png")
-        .unwrap();
-
-    let PngImage::Rgb(mut image) = image else {
+    let space = picture::open("examples/images/space.png").unwrap();
+    let CommonImgBuf::Rgb8(mut space) = space else {
         unreachable!()
     };
 
-    dither(&mut image);
+    dither(&mut space);
 
-    let encoded = PngEncoder::default().encode(image).unwrap();
-    let mut f = std::fs::File::create("examples/images/out_dithered.png").unwrap();
-    f.write_all(&encoded[..]).unwrap();
+    let file = std::fs::File::create("examples/images/out_dither.png").unwrap();
+    Encoder::default().encode(file, space).unwrap();
 }

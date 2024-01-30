@@ -1,8 +1,8 @@
 use picture::{
-    formats::png::{PngDecoder, PngEncoder, PngImage},
+    buffer::common::CommonImgBuf,
+    formats::{png::Encoder, ImgEncoder},
     prelude::*,
 };
-use std::io::Write;
 
 // equivalent to ImgMut::swap_with.
 // reimplemented here for demonstration purposes
@@ -18,18 +18,14 @@ where
 }
 
 fn main() {
-    let image = PngDecoder
-        .decode_from_path("examples/images/colorful.png")
-        .unwrap();
-
-    let PngImage::Rgb(mut image) = image else {
+    let colorful = picture::open("examples/images/colorful.png").unwrap();
+    let CommonImgBuf::Rgb8(mut colorful) = colorful else {
         unreachable!()
     };
 
-    let (mut a, mut b) = image.split_x_at_mut(image.width() / 2).unwrap();
+    let (mut a, mut b) = colorful.split_x_at_mut(colorful.width() / 2).unwrap();
     swap(&mut a, &mut b);
 
-    let encoded = PngEncoder::default().encode(image).unwrap();
-    let mut f = std::fs::File::create("examples/images/out_swapped.png").unwrap();
-    f.write_all(&encoded[..]).unwrap();
+    let file = std::fs::File::create("examples/images/out_swap.png").unwrap();
+    Encoder::default().encode(file, colorful).unwrap();
 }

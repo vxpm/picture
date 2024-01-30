@@ -66,7 +66,7 @@ pub trait Img {
     /// it iterates over slices of pixels with as many pixels as possible.
     #[inline]
     fn pixel_chunks(&self) -> impl Iterator<Item = &'_ [Self::Pixel]> {
-        self.pixels().map(|x| std::slice::from_ref(x))
+        self.pixels().map(std::slice::from_ref)
     }
 
     /// Returns a view into this view. If the bounds don't fit in this view, returns `None`.

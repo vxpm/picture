@@ -19,12 +19,12 @@ macro_rules! impl_pixel {
 
             #[inline(always)]
             fn channels(&self) -> &Self::Channels {
-                bytemuck::cast_ref(self)
+                bytemuck::must_cast_ref(self)
             }
 
             #[inline(always)]
             fn channels_mut(&mut self) -> &mut Self::Channels {
-                bytemuck::cast_mut(self)
+                bytemuck::must_cast_mut(self)
             }
         }
     };
@@ -44,12 +44,12 @@ macro_rules! impl_pixel {
 
             #[inline(always)]
             fn channels(&self) -> &Self::Channels {
-                bytemuck::cast_ref(self)
+                bytemuck::must_cast_ref(self)
             }
 
             #[inline(always)]
             fn channels_mut(&mut self) -> &mut Self::Channels {
-                bytemuck::cast_mut(self)
+                bytemuck::must_cast_mut(self)
             }
         }
     };

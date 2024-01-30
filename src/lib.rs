@@ -351,6 +351,51 @@ impl proptest::arbitrary::Arbitrary for Rect {
     }
 }
 
+/// An error that can be returned from [`open`] and [`open_with_decoder`].
+#[derive(Debug, Error)]
+pub enum OpenError {
+    #[error("io error: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("decoding error: {0}")]
+    Decoding(#[from] Box<dyn std::error::Error>),
+    #[error("unknown file extension: {0:?}")]
+    UnknownExt(std::ffi::OsString),
+    #[error("missing file extension")]
+    MissingExt,
+}
+
+/// Open an image at the given path utilizing the given decoder.
+pub fn open_with_decoder<P, D>(path: P, mut decoder: D) -> Result<CommonImgBuf, OpenError>
+where
+    P: AsRef<Path>,
+    D: CommonImgDecoder,
+{
+    let file = std::fs::File::open(path.as_ref())?;
+    decoder
+        .decode_common(file)
+        .map_err(|e| Box::new(e) as _)
+        .map_err(OpenError::Decoding)
+}
+
+/// Open an image at the given path guessing the format utilizing the file extension.
+pub fn open<P>(path: P) -> Result<CommonImgBuf, OpenError>
+where
+    P: AsRef<Path>,
+{
+    let Some(extension) = path.as_ref().extension() else {
+        return Err(OpenError::MissingExt);
+    };
+
+    let Some(extension) = extension.to_str() else {
+        return Err(OpenError::UnknownExt(extension.to_owned()));
+    };
+
+    match extension {
+        "png" => open_with_decoder(path, Decoder),
+        extension => Err(OpenError::UnknownExt(std::ffi::OsString::from(extension))),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[allow(unused_imports)]
